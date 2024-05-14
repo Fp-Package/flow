@@ -1,0 +1,32 @@
+body {
+    margin: 0;
+}
+
+.flow-container {
+    height: 100vh;
+    position: relative;
+    background: #222;
+    z-index: 7;
+}
+
+.node {
+    background: #2f9170;
+    padding: 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    position: absolute;
+    z-index: 9;
+}
+
+#lineCanvas {
+    position: absolute;
+    z-index: 8;
+    width: 100%;
+    height: 100%;
+    left: 0;
+    top: 0;
+}
+
+body::-webkit-scrollbar {
+    display: none;
+}
