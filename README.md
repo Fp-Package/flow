@@ -1,7 +1,5 @@
 # FP Flow
 
-## Description
-
 FP Flow is a flow library that is very small and built on vanillajs. You can pass on a simple block of your html element and it creates the block. You can create the connections as well. As it is built with simple javascript.
 
 ## Installation
@@ -20,13 +18,6 @@ FP Flow is a flow library that is very small and built on vanillajs. You can pas
 ## Methods
 
 There are various methodes that can be easily viewed but the most used are descibed below.
-
-### addNode
-#### Parameter
-HTMLElement
-
-#### Description
-To add a node, you simply call adNode method on the intantiated object by passing the html element of your node that you want to create
 
 ### addNode
 #### Parameter
