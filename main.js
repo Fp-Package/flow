@@ -1,100 +1,162 @@
 import { Node } from "./node.js";
 
-let canvasStartX = 0, canvasStartY = 0, canvasNewX = 0, canvasNewY = 0;
-let canvasTranslateX = 0, canvasTranslateY = 0;
-const canvas = document.getElementById('canvas');
-const canvasEl = document.getElementById('lineCanvas');
-canvasEl.width = canvas.offsetWidth;
-canvasEl.height = canvas.offsetHeight;
-let lastScale = 1;
-let lastZoomDirection = null;
-const zoomTollerance = { min: 1, max: 3 };
-const zoomScale = 0.05;
-let isDragging = false;
-let maxTranslateXAllowed = 0;
-let maxTranslateYAllowed = 0;
-const ctx = canvasEl.getContext('2d');
-const node1 = new Node('node1');
-const node2 = new Node('node2');
+export class FPFlow {
 
-const drawLine = (x1, y1, x2, y2) => {
-    // console.log('x1:', x1, 'y1:', y1, 'x2:', x2, 'y1:', y2);
-    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-    ctx.beginPath();
-    ctx.moveTo(x1, y1);
-    ctx.lineTo(x2, y2);
-    ctx.stroke();
-    ctx.strokeStyle = 'white';
-    ctx.lineWidth = 1;
-};
-
-node1.onNodeMove((x, y) => {
-    //console.log('node1', x, y);
-    drawLine(x, y, node2.centerX, node2.centerY);
-});
-
-node2.onNodeMove((x, y) => {
-    //console.log('node2', x, y);
-    drawLine(x, y, node1.centerX, node1.centerY);
-});
-
-canvas.addEventListener('mousedown', (e) => {
-    canvas.style.cursor = 'grabbing';
-    canvasStartX = e.clientX;
-    canvasStartY = e.clientY;
-    isDragging = true;
-});
-canvas.addEventListener('mousemove', (e) => {
-    e.preventDefault();
-    if (!isDragging) return;
-    canvasNewX = e.clientX;
-    canvasNewY = e.clientY;
-    const diffX = canvasNewX - canvasStartX;
-    const diffY = canvasNewY - canvasStartY;
-    canvasTranslateX += diffX;
-    canvasTranslateY += diffY;
-    canvasStartX = canvasNewX;
-    canvasStartY = canvasNewY;
-    if (canvasTranslateX > maxTranslateXAllowed) {
-        canvasTranslateX = maxTranslateXAllowed;
-    }
-    if (canvasTranslateX < -maxTranslateXAllowed) {
-        canvasTranslateX = -maxTranslateXAllowed;
-    }
-    if (canvasTranslateY > maxTranslateYAllowed) {
-        canvasTranslateY = maxTranslateYAllowed;
-    }
-    if (canvasTranslateY < -maxTranslateYAllowed) {
-        canvasTranslateY = -maxTranslateYAllowed;
-    }
-    canvas.style.transform = `translate(${canvasTranslateX}px, ${canvasTranslateY}px) scale(${lastScale})`;
-});
-canvas.addEventListener('mouseup', (e) => {
-    canvas.style.cursor = 'initial';
+    canvasStartX = 0;
+    canvasStartY = 0;
+    canvasNewX = 0;
+    canvasNewY = 0;
+    canvasTranslateX = 0;
+    canvasTranslateY = 0;
+    canvas = null;
+    canvasEl = null;
+    lastScale = 1;
+    lastZoomDirection = null;
+    zoomTollerance = { min: 1, max: 3 };
+    zoomScale = 0.05;
     isDragging = false;
-});
+    maxTranslateXAllowed = 0;
+    maxTranslateYAllowed = 0;
+    ctx = null;
+    nodes = [];
 
-canvas.addEventListener('wheel', (e) => {
-    // console.log(e);
-    e.preventDefault();
-    if (!e.ctrlKey) {
-        // Triggered by two finger scroll
-        return;
+    constructor(containerElement) {
+        this.canvas = document.createElement('div');
+        this.canvas.id = 'canvas';
+        this.canvas.classList.add('flow-container');
+        containerElement.appendChild(this.canvas);
+        this.canvasEl = document.createElement('canvas');
+        this.canvasEl.id = 'lineCanvas';
+        this.canvas.appendChild(this.canvasEl);
+        this.canvasEl.width = canvas.offsetWidth;
+        this.canvasEl.height = canvas.offsetHeight;
+        this.ctx = this.canvasEl.getContext('2d');
+        this.init();
+        // Handle parent scroll behaviour
     }
-    const delta = e.wheelDelta;
-    const zoomDirection = (delta / 120) > 0 ? 'zoomout' : 'zoomin';
-    if (lastZoomDirection === 'zoomout' && zoomDirection === 'zoomout' && lastScale >= zoomTollerance.max) {
-        return;
+
+    drawLine(x1, y1, x2, y2) {
+        console.log('x1:', x1, 'y1:', y1, 'x2:', x2, 'y1:', y2);
+        this.ctx.beginPath();
+        this.ctx.moveTo(x1, y1);
+        this.ctx.lineTo(x2, y2);
+        this.ctx.stroke();
+        this.ctx.strokeStyle = 'white';
+        this.ctx.lineWidth = 1;
+    };
+
+    refreshCanvas() {
+        this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+        this.nodes.forEach((nodeItem) => {
+            nodeItem.connectedNodes.forEach((connectedNode) => {
+                const node1 = nodeItem;
+                const node2 = this.nodes.find((node) => node.id === connectedNode);
+                this.drawLine(node1.centerX, node1.centerY, node2.centerX, node2.centerY);
+            });
+        });
     }
-    if (lastZoomDirection === 'zoomin' && zoomDirection === 'zoomin' && lastScale <= zoomTollerance.min) {
-        return;
+
+    addNode(element) {
+        const id = this.nodes.length;
+        const node = new Node(element, id);
+        this.canvas.appendChild(element);
+
+        this.nodes.push(node);
+        node.onNodeMove((x, y) => {
+            this.refreshCanvas();
+        });
+        return node;
     }
-    lastScale += zoomDirection === 'zoomout' ? zoomScale : zoomScale * -1;
-    lastZoomDirection = zoomDirection;
-    maxTranslateXAllowed = (canvas.offsetWidth * lastScale - canvas.offsetWidth) / 2;
-    maxTranslateYAllowed = (canvas.offsetHeight * lastScale - canvas.offsetHeight) / 2;
-    if (lastScale < 1) {
-        lastScale = 1;
+
+    removeNode(nodeId) {
+        const node = this.nodes.find((node) => node.id === nodeId);
+        node.element.remove();
+        this.nodes = this.nodes.filter((node) => node.id !== nodeId);
+        this.nodes.forEach((node) => {
+            node.connectedNodes = node.connectedNodes.filter((connectedNode) => connectedNode !== nodeId);
+        });
+        this.refreshCanvas();
     }
-    canvas.style.transform = `scale(${lastScale})`;
-});
+
+    addConnection(node1Id, node2Id) {
+        const node1Instance = this.nodes.find((node) => node.id === node1Id);
+        const node2Instance = this.nodes.find((node) => node.id === node2Id);
+        node1Instance.connectedNodes.push(node2Id);
+        node2Instance.connectedNodes.push(node1Id);
+        this.refreshCanvas();
+    }
+
+    removeConnection(node1Id, node2Id) {
+        const node1Instance = this.nodes.find((node) => node.id === node1Id);
+        const node2Instance = this.nodes.find((node) => node.id === node2Id);
+        node1Instance.connectedNodes = node1Instance.connectedNodes.filter((node) => node !== node2Id);
+        node2Instance.connectedNodes = node2Instance.connectedNodes.filter((node) => node !== node1Id);
+        this.refreshCanvas();
+    }
+
+    init() {
+        this.canvas.addEventListener('mousedown', (e) => {
+            this.canvas.style.cursor = 'grabbing';
+            this.canvasStartX = e.clientX;
+            this.canvasStartY = e.clientY;
+            this.isDragging = true;
+        });
+        this.canvas.addEventListener('mousemove', (e) => {
+            e.preventDefault();
+            if (!this.isDragging) return;
+            this.canvasNewX = e.clientX;
+            this.canvasNewY = e.clientY;
+            const diffX = this.canvasNewX - this.canvasStartX;
+            const diffY = this.canvasNewY - this.canvasStartY;
+            this.canvasTranslateX += diffX;
+            this.canvasTranslateY += diffY;
+            this.canvasStartX = this.canvasNewX;
+            this.canvasStartY = this.canvasNewY;
+            if (this.canvasTranslateX > this.maxTranslateXAllowed) {
+                this.canvasTranslateX = this.maxTranslateXAllowed;
+            }
+            if (this.canvasTranslateX < -this.maxTranslateXAllowed) {
+                this.canvasTranslateX = -this.maxTranslateXAllowed;
+            }
+            if (this.canvasTranslateY > this.maxTranslateYAllowed) {
+                this.canvasTranslateY = this.maxTranslateYAllowed;
+            }
+            if (this.canvasTranslateY < -this.maxTranslateYAllowed) {
+                this.canvasTranslateY = -this.maxTranslateYAllowed;
+            }
+            this.canvas.style.transform = `translate(${this.canvasTranslateX}px, ${this.canvasTranslateY}px) scale(${this.lastScale})`;
+        });
+        this.canvas.addEventListener('mouseup', (e) => {
+            this.canvas.style.cursor = 'initial';
+            this.isDragging = false;
+        });
+
+        this.canvas.addEventListener('wheel', (e) => {
+            // console.log(e);
+            e.preventDefault();
+            if (!e.ctrlKey) {
+                // Triggered by two finger scroll
+                return;
+            }
+            const delta = e.wheelDelta;
+            const zoomDirection = (delta / 120) > 0 ? 'zoomout' : 'zoomin';
+            if (this.lastZoomDirection === 'zoomout' && zoomDirection === 'zoomout' && this.lastScale >= this.zoomTollerance.max) {
+                return;
+            }
+            if (this.lastZoomDirection === 'zoomin' && zoomDirection === 'zoomin' && this.lastScale <= this.zoomTollerance.min) {
+                return;
+            }
+            this.lastScale += zoomDirection === 'zoomout' ? this.zoomScale : this.zoomScale * -1;
+            this.lastZoomDirection = zoomDirection;
+            this.maxTranslateXAllowed = (this.canvas.offsetWidth * this.lastScale - this.canvas.offsetWidth) / 2;
+            this.maxTranslateYAllowed = (this.canvas.offsetHeight * this.lastScale - this.canvas.offsetHeight) / 2;
+            if (this.lastScale < 1) {
+                this.lastScale = 1;
+            }
+            this.canvas.style.transform = `scale(${this.lastScale})`;
+        });
+    }
+
+}
+
+window.FPFlow = FPFlow;

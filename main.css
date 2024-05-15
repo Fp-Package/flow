@@ -27,6 +27,6 @@ body {
     top: 0;
 }
 
-body::-webkit-scrollbar {
+.scroll-container::-webkit-scrollbar {
     display: none;
 }

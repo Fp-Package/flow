@@ -1,17 +1,28 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <link rel="stylesheet" href="main.css">
+    <script id="flowScript" src="main.js" type="module"></script>
 </head>
-<body>
-    <div id="canvas" class="flow-container">
+
+<body class="scroll-container">
+    <!-- <div id="canvas" class="flow-container">
         <div class="node" id="node1">Hi</div>
         <div class="node" id="node2">Hello</div>
         <canvas id="lineCanvas"></canvas>
-    </div>
-    <script src="main.js" type="module"></script>
+    </div> -->
+    <script>
+        document.getElementById('flowScript').addEventListener('load', () => {
+            // const FPFlow = window.FPFlow;
+            // const flow = new FPFlow(document.body);
+            // console.log(flow);
+            // Add nodes
+        });
+    </script>
 </body>
+
 </html>

@@ -9,9 +9,15 @@ export class Node {
     cb = null;
     centerX = 0;
     centerY = 0;
+    data = {};
+    id = null;
+    connectedNodes = [];
 
-    constructor(id) {
-        this.element = document.getElementById(id);
+    constructor(element, id) {
+        this.element = element;
+        element.classList.add('node');
+        element.id = 'fpfn - ' + id;
+        this.id = id;
         this.element.addEventListener('mousedown', this.mousedown.bind(this));
         this.setCenter();
     };
