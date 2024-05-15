@@ -26,6 +26,7 @@ HTMLElement of the node. If you are using React, use `createElement` method. For
 #### Description
 To add a node, you simply call addNode method on the intantiated object by passing the html element of your node that you want to create
 
+
 ### removeNode
 #### Parameter
 Id of the node that you received on calling addNode method
@@ -33,12 +34,14 @@ Id of the node that you received on calling addNode method
 #### Description
 To remove a node, you simply call removeNode method on the intantiated object by passing the `id` of your node that you got by doing `addNode`.
 
+
 ### addConnection
 #### Parameter
 Node1Id, Node2Id. The `id`s of the nodes you want to connect.
 
 #### Description
 To add a connection, simply call addConnection method on the intantiated object by passing the `id`s of the nodes that you want to connect.
+
 
 ### removeConnection
 #### Parameter
