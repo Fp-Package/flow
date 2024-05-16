@@ -1,12 +1,21 @@
 {
   "name": "fp-flow",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "A very powerful and flexible flow library for any framework, which is also very light.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "uglifyjs main.js -o index.js --compress --mangle"
   },
-  "keywords": ["flow", "first-penny", "first-penny-npm", "react-flow", "flow-library", "js-flow-library", "flow-typed-library"],
+  "keywords": [
+    "flow",
+    "first-penny",
+    "first-penny-npm",
+    "react-flow",
+    "flow-library",
+    "js-flow-library",
+    "flow-typed-library"
+  ],
   "author": "First Penny",
   "license": "MIT"
 }
