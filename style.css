@@ -1,0 +1,24 @@
+body {
+    height: 100vh;
+    margin: 0;
+}
+
+.fpc {
+    display: flex;
+    height: 100%;
+    flex-direction: column;
+}
+
+.control {
+    padding: 10px;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.control .btn {
+    margin-left: 16px;
+}
+
+.fp-scroll-container {
+    flex-grow: 1;
+}

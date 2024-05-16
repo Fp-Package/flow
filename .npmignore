@@ -3,3 +3,4 @@ style.css
 .eslintrc
 eslint.json
 node_modules/
+main.js

@@ -23,10 +23,10 @@
     top: 0;
 }
 
-.scroll-container::-webkit-scrollbar {
+.fp-scroll-container::-webkit-scrollbar {
     display: none;
 }
 
-.scroll-container {
+.fp-scroll-container {
     overflow: scroll;
 }

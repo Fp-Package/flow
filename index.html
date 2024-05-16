@@ -16,27 +16,29 @@
             <button class="btn" id="an">Add Node</button>
             <button class="btn" id="ac" disabled>Add Connection</button>
         </div>
-        <div class="scroll-container"></div>
+        <div class="fp-scroll-container"></div>
     </div>
     <script>
         document.getElementById('flowScript').addEventListener('load', () => {
             const FPFlow = window.FPFlow;
-            const flow = new FPFlow(document.querySelector('.scroll-container'));
+            const flow = new FPFlow();
             window.flow = flow;
             console.log(flow);
+            const anEl = document.getElementById('an');
+            const acEl = document.getElementById('ac');
 
-            document.getElementById('an').addEventListener('click', async () => {
+            anEl.addEventListener('click', async () => {
                 const el = document.createElement('div');
                 const node = flow.addNode(el);
                 el.innerText = `Node ${node.id}`;
                 if (flow.nodes.length > 1) {
-                    document.getElementById('ac').removeAttribute('disabled');
+                    acEl.removeAttribute('disabled');
                 } else {
-                    document.getElementById('ac').setAttribute('disabled', null);
+                    acEl.setAttribute('disabled', null);
                 }
             });
 
-            document.getElementById('ac').addEventListener('click', async () => {
+            acEl.addEventListener('click', async () => {
                 let from = 0, to = 1;
                 if (flow.nodes.length > 2) {
                     const text = await prompt('Enter Node ids to connect (comma separated)');

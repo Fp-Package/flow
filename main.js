@@ -21,7 +21,8 @@ export class FPFlow {
     nodes = [];
     isNodeDragging = false;
 
-    constructor(containerElement) {
+    constructor() {
+        const containerElement = document.querySelector('.fp-scroll-container');
         this.canvas = document.createElement('div');
         this.canvas.id = 'canvas';
         this.canvas.classList.add('flow-container');
