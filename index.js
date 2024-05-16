@@ -19,6 +19,7 @@ export class FPFlow {
     maxTranslateYAllowed = 0;
     ctx = null;
     nodes = [];
+    isNodeDragging = false;
 
     constructor(containerElement) {
         this.canvas = document.createElement('div');
@@ -27,6 +28,7 @@ export class FPFlow {
         containerElement.appendChild(this.canvas);
         this.canvasEl = document.createElement('canvas');
         this.canvasEl.id = 'lineCanvas';
+        this.canvasEl.classList.add('line-canvas');
         this.canvas.appendChild(this.canvasEl);
         this.canvasEl.width = canvas.offsetWidth;
         this.canvasEl.height = canvas.offsetHeight;
@@ -36,22 +38,29 @@ export class FPFlow {
     }
 
     drawLine(x1, y1, x2, y2) {
-        console.log('x1:', x1, 'y1:', y1, 'x2:', x2, 'y1:', y2);
+        // console.log('x1:', x1, 'y1:', y1, 'x2:', x2, 'y1:', y2);
         this.ctx.beginPath();
         this.ctx.moveTo(x1, y1);
+        // this.ctx.lineTo(x1, y2);
         this.ctx.lineTo(x2, y2);
-        this.ctx.stroke();
         this.ctx.strokeStyle = 'white';
-        this.ctx.lineWidth = 1;
+        this.ctx.lineWidth = 1 / this.lastScale;
+        this.ctx.stroke();
     };
 
     refreshCanvas() {
         this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+        const connectedNodes = [];
         this.nodes.forEach((nodeItem) => {
             nodeItem.connectedNodes.forEach((connectedNode) => {
                 const node1 = nodeItem;
                 const node2 = this.nodes.find((node) => node.id === connectedNode);
+                const connection = node1.id > node2.id ? `${node2.id}-${node1.id}` : `${node1.id}-${node2.id}`;
+                if (connectedNodes.includes(connection)) {
+                    return;
+                }
                 this.drawLine(node1.centerX, node1.centerY, node2.centerX, node2.centerY);
+                connectedNodes.push(connection);
             });
         });
     }
@@ -60,11 +69,22 @@ export class FPFlow {
         const id = this.nodes.length;
         const node = new Node(element, id);
         this.canvas.appendChild(element);
+        element.style.transform = `scale(${1 / this.lastScale})`;
 
         this.nodes.push(node);
+
+        node.onNodeMoveStart((e) => {
+            this.isNodeDragging = true;
+        });
+        
         node.onNodeMove((x, y) => {
             this.refreshCanvas();
         });
+
+        node.onNodeMoveEnd((e) => {
+            this.isNodeDragging = false;
+        });
+
         return node;
     }
 
@@ -79,14 +99,20 @@ export class FPFlow {
     }
 
     addConnection(node1Id, node2Id) {
+        node1Id = parseInt(node1Id);
+        node2Id = parseInt(node2Id);
         const node1Instance = this.nodes.find((node) => node.id === node1Id);
         const node2Instance = this.nodes.find((node) => node.id === node2Id);
-        node1Instance.connectedNodes.push(node2Id);
-        node2Instance.connectedNodes.push(node1Id);
+        if (!(node1Instance.connectedNodes.includes(node2Id) || node2Instance.connectedNodes.includes(node1Id))) {
+            node1Instance.connectedNodes.push(node2Id);
+            node2Instance.connectedNodes.push(node1Id);
+        }
         this.refreshCanvas();
     }
 
     removeConnection(node1Id, node2Id) {
+        node1Id = parseInt(node1Id);
+        node2Id = parseInt(node2Id);
         const node1Instance = this.nodes.find((node) => node.id === node1Id);
         const node2Instance = this.nodes.find((node) => node.id === node2Id);
         node1Instance.connectedNodes = node1Instance.connectedNodes.filter((node) => node !== node2Id);
@@ -96,6 +122,7 @@ export class FPFlow {
 
     init() {
         this.canvas.addEventListener('mousedown', (e) => {
+            if(this.isNodeDragging) return;
             this.canvas.style.cursor = 'grabbing';
             this.canvasStartX = e.clientX;
             this.canvasStartY = e.clientY;
@@ -103,7 +130,7 @@ export class FPFlow {
         });
         this.canvas.addEventListener('mousemove', (e) => {
             e.preventDefault();
-            if (!this.isDragging) return;
+            if (!this.isDragging || this.isNodeDragging) return;
             this.canvasNewX = e.clientX;
             this.canvasNewY = e.clientY;
             const diffX = this.canvasNewX - this.canvasStartX;
@@ -153,7 +180,13 @@ export class FPFlow {
             if (this.lastScale < 1) {
                 this.lastScale = 1;
             }
+            this.nodes.forEach((node) => {
+                node.element.style.transform = `scale(${1 / this.lastScale})`;
+                node.canvasScale = this.lastScale;
+                node.setCenter();
+            });
             this.canvas.style.transform = `scale(${this.lastScale})`;
+            this.refreshCanvas();
         });
     }
 

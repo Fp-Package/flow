@@ -1,9 +1,5 @@
-body {
-    margin: 0;
-}
-
 .flow-container {
-    height: 100vh;
+    height: 100%;
     position: relative;
     background: #222;
     z-index: 7;
@@ -18,7 +14,7 @@ body {
     z-index: 9;
 }
 
-#lineCanvas {
+.line-canvas {
     position: absolute;
     z-index: 8;
     width: 100%;
@@ -29,4 +25,8 @@ body {
 
 .scroll-container::-webkit-scrollbar {
     display: none;
+}
+
+.scroll-container {
+    overflow: scroll;
 }

@@ -6,21 +6,44 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <link rel="stylesheet" href="main.css">
-    <script id="flowScript" src="main.js" type="module"></script>
+    <link rel="stylesheet" href="style.css">
+    <script id="flowScript" src="index.js" type="module"></script>
 </head>
 
-<body class="scroll-container">
-    <!-- <div id="canvas" class="flow-container">
-        <div class="node" id="node1">Hi</div>
-        <div class="node" id="node2">Hello</div>
-        <canvas id="lineCanvas"></canvas>
-    </div> -->
+<body>
+    <div class="fpc">
+        <div class="control">
+            <button class="btn" id="an">Add Node</button>
+            <button class="btn" id="ac" disabled>Add Connection</button>
+        </div>
+        <div class="scroll-container"></div>
+    </div>
     <script>
         document.getElementById('flowScript').addEventListener('load', () => {
-            // const FPFlow = window.FPFlow;
-            // const flow = new FPFlow(document.body);
-            // console.log(flow);
-            // Add nodes
+            const FPFlow = window.FPFlow;
+            const flow = new FPFlow(document.querySelector('.scroll-container'));
+            window.flow = flow;
+            console.log(flow);
+
+            document.getElementById('an').addEventListener('click', async () => {
+                const el = document.createElement('div');
+                const node = flow.addNode(el);
+                el.innerText = `Node ${node.id}`;
+                if (flow.nodes.length > 1) {
+                    document.getElementById('ac').removeAttribute('disabled');
+                } else {
+                    document.getElementById('ac').setAttribute('disabled', null);
+                }
+            });
+
+            document.getElementById('ac').addEventListener('click', async () => {
+                let from = 0, to = 1;
+                if (flow.nodes.length > 2) {
+                    const text = await prompt('Enter Node ids to connect (comma separated)');
+                    [from, to] = text.split(',').map(id => parseInt(id.trim()));
+                }
+                flow.addConnection(from, to);
+            });
         });
     </script>
 </body>

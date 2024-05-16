@@ -5,14 +5,14 @@ FP Flow is a flow library that is very small and built on vanillajs. You can pas
 ## Installation
 
 1. Install the package by running `npm install`.
-2. Create a container with class `scroll-container`.
-3. Head over to [github](https://github.com/First-Penny/fp-flow) and import the main.css in your project.
-4. You are ready to go.
+2. Create a container with class `scroll-container` and make sure it takes the height you intend for. Apply height if necessary. Careful, it has to match the class name exactly.
+3. You are ready to go.
 
 ## Usage
 
-1. Import the class FPFlow from `main.js`.
-2. Instantiate by passing the container element on which you put the class `scroll-container`. remember, the js html object to passed here. Eg.: `const flow = new FPFlow(document.getElementById('container'))`
+1. Import the class FPFlow from the package.
+2. Instantiate by passing the container element on which you put the class `scroll-container`.
+Eg.: `const flow = new FPFlow(document.getElementById('scroll-container'))`
 3. Call the methods provided by the `flow` object to perform specific tasks.
 
 ## Methods
@@ -49,3 +49,9 @@ Node1Id, Node2Id. The `id`s of the nodes you want to remove the connection of.
 
 #### Description
 To remove a connection between two nodes, simply call removeConnection method on the intantiated object by passing the `id`s of the nodes that you want to connect.
+
+
+## To Do
+1. Add comments
+2. Remove event listeners
+3. Apply requestAnmationFrame
