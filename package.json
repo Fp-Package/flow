@@ -1,6 +1,6 @@
 {
   "name": "fp-flow",
-  "version": "1.0.13",
+  "version": "1.0.15",
   "description": "A very powerful and flexible flow library for any framework, which is also very light.",
   "main": "index.js",
   "scripts": {

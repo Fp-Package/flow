@@ -197,20 +197,65 @@ export class FPFlow {
             canvasTranslateX: this.canvasTranslateX,
             canvasTranslateY: this.canvasTranslateY,
             lastScale: this.lastScale,
-            canvasStartX: 0,
-            canvasStartY: 0,
-            canvasTranslateX: 0,
-            canvasTranslateY: 0,
-            lastScale: 1,
-            isDragging: false,
-            nodes:[],
-            strokeColor: 'white',
-            strokeWidth: 1
+            canvasStartX: this.canvasStartX,
+            canvasStartY: this.canvasStartY,
+            canvasTranslateX: this.canvasTranslateX,
+            canvasTranslateY: this.canvasTranslateY,
+            lastScale: this.lastScale,
+            isDragging: this.isDragging,
+            nodes: this.nodes,
+            strokeColor: this.strokeColor,
+            strokeWidth: this.strokeWidth
         };
-        info.nodes.forEach((node) => {
-            delete node.element
+        info.nodes.map((node) => {
+            return {
+                startX: node.startX,
+                startY: node.startY,
+                centerX: node.centerX,
+                centerY: node.centerY,
+                data: node.data,
+                id: node.id,
+                connectedNodes: node.connectedNodes,
+                canvasScale: node.canvasScale
+            };
         });
         return info;
+    }
+
+    renderSavedFlow(data) {
+        this.canvasTranslateX = data.canvasTranslateX;
+        this.canvasTranslateY = data.canvasTranslateY;
+        this.lastScale = data.lastScale;
+        this.canvasStartX = data.canvasStartX;
+        this.canvasStartY = data.canvasStartY;
+        this.canvasTranslateX = data.canvasTranslateX;
+        this.canvasTranslateY = data.canvasTranslateY;
+        this.lastScale = data.lastScale;
+        this.isDragging = data.isDragging;
+        this.nodes = data.nodes;
+        this.strokeColor = data.strokeColor;
+        this.strokeWidth = data.strokeWidth;
+        this.nodes.forEach((node) => {
+            const element = document.createElement('div');
+            element.style.left = node.centerX + 'px';
+            element.style.top = node.centerY + 'px';
+            element.classList.add('node');
+            element.id = 'fpfn - ' + node.id;
+            this.canvas.appendChild(element);
+            node.element = element;
+            node.canvasScale = this.lastScale;
+            node.setCenter();
+            node.onNodeMoveStart((e) => {
+                this.isNodeDragging = true;
+            });
+            node.onNodeMove((x, y) => {
+                this.refreshCanvas();
+            });
+            node.onNodeMoveEnd((e) => {
+                this.isNodeDragging = false;
+            });
+        });
+        this.refreshCanvas();
     }
 
 }

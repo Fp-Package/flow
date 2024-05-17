@@ -55,6 +55,11 @@ To remove a connection between two nodes, simply call `removeConnection` method 
 #### Description
 If you want to save the flow for reuse, which you would be doing in most cases, call `getRenditionInfo` to get the data that you can pass to your backend. This is the minimum data required by this flow library to be rendered. In the each node object inside `flow.nodes` array. the `data` property can also be used to set extra information about the element or its state.
 
+### renderSavedFlow
+
+#### Description
+Once you saved your rendition data, call `renderSavedFlow` method to render the the flow next time after you brought the data from API. Remember to create the nodes with elements by calling `node.element = <html element>` and their state, that you saved to `node.data` property. <strong>Don't call the `addNode` or `addConnection` or any other method before calling `renderSavedFlow` when you have the pre-saved flow data and you want to render that flow.</strong>
+
 
 ## Properties
 There are mainly two types of properties. One is for the flow object we created from the FPFlow class, another is the node object we got from calling addNode.
@@ -87,7 +92,7 @@ This returns the node element you passed.
 This is the property you would like to put most focus on as you can store your data here. You can modify, reasign and delete as you do with js objects. Be careful not to save the whole node object in backend as it holds unnecessary information.
 
 ## Rendering a saved flow
-
+Look at `renderSavedFlow` method.
 
 ## To Do
 1. Add comments
