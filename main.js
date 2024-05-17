@@ -4,8 +4,6 @@ export class FPFlow {
 
     canvasStartX = 0;
     canvasStartY = 0;
-    canvasNewX = 0;
-    canvasNewY = 0;
     canvasTranslateX = 0;
     canvasTranslateY = 0;
     canvas = null;
@@ -20,6 +18,8 @@ export class FPFlow {
     ctx = null;
     nodes = [];
     isNodeDragging = false;
+    strokeColor = 'white';
+    strokeWidth = 1;
 
     constructor() {
         const containerElement = document.querySelector('.fp-scroll-container');
@@ -44,8 +44,8 @@ export class FPFlow {
         this.ctx.moveTo(x1, y1);
         // this.ctx.lineTo(x1, y2);
         this.ctx.lineTo(x2, y2);
-        this.ctx.strokeStyle = 'white';
-        this.ctx.lineWidth = 1 / this.lastScale;
+        this.ctx.strokeStyle = this.strokeColor;
+        this.ctx.lineWidth = this.strokeWidth / this.lastScale;
         this.ctx.stroke();
     };
 
@@ -77,7 +77,7 @@ export class FPFlow {
         node.onNodeMoveStart((e) => {
             this.isNodeDragging = true;
         });
-        
+
         node.onNodeMove((x, y) => {
             this.refreshCanvas();
         });
@@ -123,7 +123,7 @@ export class FPFlow {
 
     init() {
         this.canvas.addEventListener('mousedown', (e) => {
-            if(this.isNodeDragging) return;
+            if (this.isNodeDragging) return;
             this.canvas.style.cursor = 'grabbing';
             this.canvasStartX = e.clientX;
             this.canvasStartY = e.clientY;
@@ -132,14 +132,14 @@ export class FPFlow {
         this.canvas.addEventListener('mousemove', (e) => {
             e.preventDefault();
             if (!this.isDragging || this.isNodeDragging) return;
-            this.canvasNewX = e.clientX;
-            this.canvasNewY = e.clientY;
-            const diffX = this.canvasNewX - this.canvasStartX;
-            const diffY = this.canvasNewY - this.canvasStartY;
+            const canvasNewX = e.clientX;
+            const canvasNewY = e.clientY;
+            const diffX = canvasNewX - this.canvasStartX;
+            const diffY = canvasNewY - this.canvasStartY;
             this.canvasTranslateX += diffX;
             this.canvasTranslateY += diffY;
-            this.canvasStartX = this.canvasNewX;
-            this.canvasStartY = this.canvasNewY;
+            this.canvasStartX = canvasNewX;
+            this.canvasStartY = canvasNewY;
             if (this.canvasTranslateX > this.maxTranslateXAllowed) {
                 this.canvasTranslateX = this.maxTranslateXAllowed;
             }
@@ -189,6 +189,28 @@ export class FPFlow {
             this.canvas.style.transform = `scale(${this.lastScale})`;
             this.refreshCanvas();
         });
+    }
+
+    getRenditionInfo() {
+        const info = {
+            nodes: this.nodes,
+            canvasTranslateX: this.canvasTranslateX,
+            canvasTranslateY: this.canvasTranslateY,
+            lastScale: this.lastScale,
+            canvasStartX: 0,
+            canvasStartY: 0,
+            canvasTranslateX: 0,
+            canvasTranslateY: 0,
+            lastScale: 1,
+            isDragging: false,
+            nodes:[],
+            strokeColor: 'white',
+            strokeWidth: 1
+        };
+        info.nodes.forEach((node) => {
+            delete node.element
+        });
+        return info;
     }
 
 }

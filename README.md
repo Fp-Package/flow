@@ -5,31 +5,31 @@ FP Flow is a flow library that is very small and built on vanillajs. You can pas
 ## Installation
 
 1. Install the package by running `npm install`.
-2. Create a container with class `fp-scroll-container` and make sure it takes the height you intend for. Apply height if necessary. Careful, it has to match the class name exactly.
-3. You are ready to go.
+2. Import the `main.css` that is passed with this package, into your project.
+3. Create a container with class `fp-scroll-container` and make sure it takes the height you intend for. Apply height if necessary. Careful, it has to match the class name exactly.
+4. You are ready to go.
 
 ## Usage
 
-1. Import the class FPFlow from the package.
-2. Instantiate `FPFlow`. Eg.: `const flow = new FPFlow()`
-3. Import the main.css into the project that is passed with this package
-4. Call the methods provided by the instantiated object created from `FPFlow` class to perform specific tasks.
+1. Import the class `FPFlow` from the package.
+2. Instantiate `FPFlow`. Eg.: `const flow = new FPFlow()`.
+3. Call the methods provided by the instantiated object created from `FPFlow` class to perform specific tasks.
 
 ## Methods
 
-There are various methodes that can be easily viewed but the most used are descibed below.
+There are various methods that can be easily viewed but the most used are descibed below.
 
 ### addNode
 #### Parameter
 HTMLElement of the node. If you are using React, use `createElement` method. For angular you have to use `Dynamic Component Rendering`.
 
 #### Description
-To add a node, you simply call `addNode` method on the intantiated object by passing the html element of your node that you want to create
+To add a node, simply call `addNode` method on the intantiated object by passing the html element of your node that you want to create.
 
 
 ### removeNode
 #### Parameter
-Id of the node that you received on calling addNode method
+Id of the node that you received on calling addNode method.
 
 #### Description
 To remove a node, you simply call `removeNode` method on the intantiated object by passing the `id` of your node that you got by doing `addNode`.
@@ -49,6 +49,44 @@ Node1Id, Node2Id. The `id`s of the nodes you want to remove the connection of.
 
 #### Description
 To remove a connection between two nodes, simply call `removeConnection` method on the intantiated object by passing the `id`s of the nodes that you want to connect.
+
+### getRenditionInfo
+
+#### Description
+If you want to save the flow for reuse, which you would be doing in most cases, call `getRenditionInfo` to get the data that you can pass to your backend. This is the minimum data required by this flow library to be rendered. In the each node object inside `flow.nodes` array. the `data` property can also be used to set extra information about the element or its state.
+
+
+## Properties
+There are mainly two types of properties. One is for the flow object we created from the FPFlow class, another is the node object we got from calling addNode.
+
+### flow
+The flow object can be gotten by calling `new FPFlow()`. Following are its properties.
+
+#### nodes
+This returns all the array of nodes you created
+
+#### element
+This gives the container element
+
+#### canvas
+This gives the canvas on which we are drawing the blocks. It's an html div element. You can easily set style or background color.
+
+#### strokeWidth
+Width of the connection strokes. It has the same unit as canvas context line width. It's changable directly.
+
+#### strokeColor
+It gives you the color of the strokkeline. It's also directly changeable.
+
+### node
+You can get the node object on calling the `addNode` method. Following are its main properties.
+
+#### element
+This returns the node element you passed.
+
+#### data
+This is the property you would like to put most focus on as you can store your data here. You can modify, reasign and delete as you do with js objects. Be careful not to save the whole node object in backend as it holds unnecessary information.
+
+## Rendering a saved flow
 
 
 ## To Do
