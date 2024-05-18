@@ -10,7 +10,7 @@ export class FPFlow {
     canvasEl = null;
     lastScale = 1;
     lastZoomDirection = null;
-    zoomTollerance = { min: 1, max: 3 };
+    zoomTollerance = { min: 1, max: 5 };
     zoomScale = 0.05;
     isDragging = false;
     maxTranslateXAllowed = 0;
@@ -20,13 +20,14 @@ export class FPFlow {
     isNodeDragging = false;
     strokeColor = 'white';
     strokeWidth = 1;
+    element = null;
 
     constructor() {
-        const containerElement = document.querySelector('.fp-scroll-container');
+        this.element = document.querySelector('.fp-scroll-container');
         this.canvas = document.createElement('div');
         this.canvas.id = 'canvas';
         this.canvas.classList.add('flow-container');
-        containerElement.appendChild(this.canvas);
+        this.element.appendChild(this.canvas);
         this.canvasEl = document.createElement('canvas');
         this.canvasEl.id = 'lineCanvas';
         this.canvasEl.classList.add('line-canvas');
@@ -70,6 +71,7 @@ export class FPFlow {
         const id = this.nodes.length;
         const node = new Node(element, id);
         this.canvas.appendChild(element);
+        node.containerElement = this.element;
         element.style.transform = `scale(${1 / this.lastScale})`;
 
         this.nodes.push(node);
@@ -176,11 +178,10 @@ export class FPFlow {
             }
             this.lastScale += zoomDirection === 'zoomout' ? this.zoomScale : this.zoomScale * -1;
             this.lastZoomDirection = zoomDirection;
-            this.maxTranslateXAllowed = (this.canvas.offsetWidth * this.lastScale - this.canvas.offsetWidth) / 2;
-            this.maxTranslateYAllowed = (this.canvas.offsetHeight * this.lastScale - this.canvas.offsetHeight) / 2;
             if (this.lastScale < 1) {
                 this.lastScale = 1;
-            }
+            }this.maxTranslateXAllowed = (this.canvas.offsetWidth * this.lastScale - this.canvas.offsetWidth) / 2;
+            this.maxTranslateYAllowed = (this.canvas.offsetHeight * this.lastScale - this.canvas.offsetHeight) / 2;
             this.nodes.forEach((node) => {
                 node.element.style.transform = `scale(${1 / this.lastScale})`;
                 node.canvasScale = this.lastScale;
@@ -192,70 +193,59 @@ export class FPFlow {
     }
 
     getRenditionInfo() {
-        const info = {
-            nodes: this.nodes,
-            canvasTranslateX: this.canvasTranslateX,
-            canvasTranslateY: this.canvasTranslateY,
-            lastScale: this.lastScale,
-            canvasStartX: this.canvasStartX,
-            canvasStartY: this.canvasStartY,
-            canvasTranslateX: this.canvasTranslateX,
-            canvasTranslateY: this.canvasTranslateY,
-            lastScale: this.lastScale,
-            isDragging: this.isDragging,
-            nodes: this.nodes,
-            strokeColor: this.strokeColor,
-            strokeWidth: this.strokeWidth
-        };
-        info.nodes.map((node) => {
-            return {
-                startX: node.startX,
-                startY: node.startY,
-                centerX: node.centerX,
-                centerY: node.centerY,
-                data: node.data,
-                id: node.id,
-                connectedNodes: node.connectedNodes,
-                canvasScale: node.canvasScale
-            };
+        const info = {};
+        const mainReusableProps = [
+            "nodes",
+            "canvasTranslateX",
+            "canvasTranslateY",
+            "lastScale",
+            "canvasStartX",
+            "canvasStartY",
+            "strokeColor",
+            "strokeWidth"
+        ]
+        mainReusableProps.forEach((prop) => {
+            info[prop] = this[prop];
+        });
+        const nodeReusableProps = [
+            "startX",
+            "startY",
+            "data",
+            "id",
+            "connectedNodes"
+        ];
+        info.nodes = info.nodes.map((node) => {
+            const nodeInfo = {};
+            nodeReusableProps.forEach((prop) => {
+                nodeInfo[prop] = node[prop];
+            });
+            return nodeInfo;
         });
         return info;
     }
 
     renderSavedFlow(data) {
-        this.canvasTranslateX = data.canvasTranslateX;
-        this.canvasTranslateY = data.canvasTranslateY;
-        this.lastScale = data.lastScale;
-        this.canvasStartX = data.canvasStartX;
-        this.canvasStartY = data.canvasStartY;
-        this.canvasTranslateX = data.canvasTranslateX;
-        this.canvasTranslateY = data.canvasTranslateY;
-        this.lastScale = data.lastScale;
-        this.isDragging = data.isDragging;
-        this.nodes = data.nodes;
-        this.strokeColor = data.strokeColor;
-        this.strokeWidth = data.strokeWidth;
-        this.nodes.forEach((node) => {
-            const element = document.createElement('div');
-            element.style.left = node.centerX + 'px';
-            element.style.top = node.centerY + 'px';
-            element.classList.add('node');
-            element.id = 'fpfn - ' + node.id;
-            this.canvas.appendChild(element);
-            node.element = element;
-            node.canvasScale = this.lastScale;
-            node.setCenter();
-            node.onNodeMoveStart((e) => {
-                this.isNodeDragging = true;
-            });
-            node.onNodeMove((x, y) => {
-                this.refreshCanvas();
-            });
-            node.onNodeMoveEnd((e) => {
-                this.isNodeDragging = false;
-            });
+        for (const key in data) {
+            if (key !== 'nodes') {
+                this[key] = data[key];
+            }
+        }
+        this.canvas.style.transform = `translate(${this.canvasTranslateX}px, ${this.canvasTranslateY}px) scale(${this.lastScale})`;
+        data.nodes.forEach((node) => {
+            const element = node.element || document.createElement('div');
+            element.style.left = `${node.startX * this.lastScale}px`;
+            element.style.top = `${node.startY * this.lastScale}px`;
+            if (!node.element) {
+                element.innerText = `Node ${node.id}`;
+            }
+            const newNode = this.addNode(element);
+            for (const key in node) {
+                newNode[key] = node[key];
+            }
         });
-        this.refreshCanvas();
+        setTimeout(() => {
+            this.refreshCanvas();
+        });
     }
 
 }
