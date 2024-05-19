@@ -72,7 +72,11 @@ export class FPFlow {
         const node = new Node(element, id);
         this.canvas.appendChild(element);
         node.containerElement = this.element;
+        const elementCenterX = this.canvasTranslateX + this.element.offsetWidth / 2 - element.offsetWidth / 2;
+        const elementCenterY = this.canvasTranslateY + this.element.offsetHeight / 2 - element.offsetHeight / 2;
         element.style.transform = `scale(${1 / this.lastScale})`;
+        element.style.left = `${elementCenterX}px`;
+        element.style.top = `${elementCenterY}px`;
 
         this.nodes.push(node);
 
@@ -164,6 +168,7 @@ export class FPFlow {
         this.canvas.addEventListener('wheel', (e) => {
             // console.log(e);
             e.preventDefault();
+            e.stopPropagation();
             if (!e.ctrlKey) {
                 // Triggered by two finger scroll
                 return;
@@ -180,7 +185,7 @@ export class FPFlow {
             this.lastZoomDirection = zoomDirection;
             if (this.lastScale < 1) {
                 this.lastScale = 1;
-            }this.maxTranslateXAllowed = (this.canvas.offsetWidth * this.lastScale - this.canvas.offsetWidth) / 2;
+            } this.maxTranslateXAllowed = (this.canvas.offsetWidth * this.lastScale - this.canvas.offsetWidth) / 2;
             this.maxTranslateYAllowed = (this.canvas.offsetHeight * this.lastScale - this.canvas.offsetHeight) / 2;
             this.nodes.forEach((node) => {
                 node.element.style.transform = `scale(${1 / this.lastScale})`;
@@ -203,7 +208,7 @@ export class FPFlow {
             "canvasStartY",
             "strokeColor",
             "strokeWidth"
-        ]
+        ];
         mainReusableProps.forEach((prop) => {
             info[prop] = this[prop];
         });
@@ -233,14 +238,14 @@ export class FPFlow {
         this.canvas.style.transform = `translate(${this.canvasTranslateX}px, ${this.canvasTranslateY}px) scale(${this.lastScale})`;
         data.nodes.forEach((node) => {
             const element = node.element || document.createElement('div');
+            const newNode = this.addNode(element);
+            for (const key in node) {
+                newNode[key] = node[key];
+            }
             element.style.left = `${node.startX * this.lastScale}px`;
             element.style.top = `${node.startY * this.lastScale}px`;
             if (!node.element) {
                 element.innerText = `Node ${node.id}`;
-            }
-            const newNode = this.addNode(element);
-            for (const key in node) {
-                newNode[key] = node[key];
             }
         });
         setTimeout(() => {
