@@ -57,6 +57,9 @@ If you want to save the flow for reuse, which you would be doing in most cases, 
 
 ### renderSavedFlow
 
+#### Parameter
+Saved flow object
+
 #### Description
 Once you saved your rendition data, call `renderSavedFlow` method to render the the flow next time after you brought the data from API. Remember to create the nodes with elements by calling `node.element = <html element>` and their state, that you saved to `node.data` property. <strong>Don't call the `addNode` or `addConnection` or any other method before calling `renderSavedFlow` when you have the pre-saved flow data and you want to render that flow.</strong>
 
@@ -81,6 +84,7 @@ Width of the connection strokes. It has the same unit as canvas context line wid
 
 #### strokeColor
 It gives you the color of the strokkeline. It's also directly changeable.
+
 
 ### node
 You can get the node object on calling the `addNode` method. Following are its main properties.
