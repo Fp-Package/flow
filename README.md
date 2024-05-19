@@ -11,9 +11,9 @@ FP Flow is a flow library that is very small and built on vanillajs. You can pas
 
 ## Usage
 
-1. Import the class `FPFlow` from the package.
-2. Instantiate `FPFlow`. Eg.: `const flow = new FPFlow()`.
-3. Call the methods provided by the instantiated object created from `FPFlow` class to perform specific tasks.
+1. Import the class `Flow` from the package.
+2. Instantiate `Flow`. Eg.: `const flow = new Flow()`.
+3. Call the methods provided by the instantiated object created from `Flow` class to perform specific tasks.
 
 ## Methods
 
@@ -65,10 +65,10 @@ Once you saved your rendition data, call `renderSavedFlow` method to render the 
 
 
 ## Properties
-There are mainly two types of properties. One is for the flow object we created from the FPFlow class, another is the node object we got from calling addNode.
+There are mainly two types of properties. One is for the flow object we created from the Flow class, another is the node object we got from calling addNode.
 
 ### flow
-The flow object can be gotten by calling `new FPFlow()`. Following are its properties.
+The flow object can be gotten by calling `new Flow()`. Following are its properties.
 
 #### nodes
 This returns all the array of nodes you created

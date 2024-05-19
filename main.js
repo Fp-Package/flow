@@ -1,6 +1,6 @@
 import { Node } from "./node.js";
 
-export class FPFlow {
+export class Flow {
 
     canvasStartX = 0;
     canvasStartY = 0;
@@ -255,4 +255,4 @@ export class FPFlow {
 
 }
 
-window.FPFlow = FPFlow;
+window.Flow = Flow;
