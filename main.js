@@ -256,10 +256,10 @@ export class Flow {
 }
 
 window.Flow = Flow;
-fetch('main.css')
-  .then(response => response.text())
-  .then(cssText => {
-    const styleEl = document.createElement('style');
-    styleEl.textContent = cssText;
-    document.head.appendChild(styleEl);
-  })
+// fetch('main.css')
+//   .then(response => response.text())
+//   .then(cssText => {
+//     const styleEl = document.createElement('style');
+//     styleEl.textContent = cssText;
+//     document.head.appendChild(styleEl);
+//   })
