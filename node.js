@@ -17,8 +17,8 @@ export class Node {
 
     constructor(element, id) {
         this.element = element;
-        element.classList.add('node');
-        element.id = 'fpfn - ' + id;
+        element.classList.add('fp-flow-node');
+        element.id = 'fpfn-' + id;
         this.id = id;
         this.element.addEventListener('mousedown', this.mousedown.bind(this));
         setTimeout(() => {
@@ -42,8 +42,8 @@ export class Node {
         this.startX = e.clientX / this.canvasScale;
         this.startY = e.clientY / this.canvasScale;
         this.nodeMoveStartCb(this.centerX, this.centerY);
-        this.containerElement.addEventListener('mousemove', this.mousemoveHandler);
-        this.containerElement.addEventListener('mouseup', this.mouseupHandler);
+        document.addEventListener('mousemove', this.mousemoveHandler);
+        document.addEventListener('mouseup', this.mouseupHandler);
     };
 
     mousemove(e) {
@@ -65,8 +65,8 @@ export class Node {
     };
 
     mouseup(e) {
-        this.containerElement.removeEventListener('mousemove', this.mousemoveHandler);
-        this.containerElement.removeEventListener('mouseup', this.mouseupHandler);
+        document.removeEventListener('mousemove', this.mousemoveHandler);
+        document.removeEventListener('mouseup', this.mouseupHandler);
         this.nodeMoveEndCb(this.centerX, this.centerY);
     };
 

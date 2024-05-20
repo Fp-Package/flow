@@ -1,14 +1,11 @@
-.flow-container {
+.fp-flow-container-inner {
     height: 100%;
     position: relative;
     background: #222;
     z-index: 7;
 }
 
-.node {
-    background: #2f9170;
-    padding: 16px;
-    border-radius: 6px;
+.fp-flow-node {
     cursor: pointer;
     position: absolute;
     z-index: 9;
@@ -23,10 +20,10 @@
     top: 0;
 }
 
-.fp-scroll-container::-webkit-scrollbar {
+.fp-flow-container::-webkit-scrollbar {
     display: none;
 }
 
-.fp-scroll-container {
+.fp-flow-container {
     overflow: scroll;
 }

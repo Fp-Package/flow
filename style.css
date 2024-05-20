@@ -19,6 +19,12 @@ body {
     margin-left: 16px;
 }
 
-.fp-scroll-container {
+.fp-flow-container {
     flex-grow: 1;
+}
+
+.fp-flow-node {
+    background: #2f9170;
+    padding: 16px;
+    border-radius: 6px;
 }

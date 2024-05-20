@@ -23,17 +23,17 @@ export class Flow {
     element = null;
 
     constructor() {
-        this.element = document.querySelector('.fp-scroll-container');
+        this.element = document.querySelector('.fp-flow-container');
         this.canvas = document.createElement('div');
-        this.canvas.id = 'canvas';
-        this.canvas.classList.add('flow-container');
+        this.canvas.id = 'fp-flow-canvas';
+        this.canvas.classList.add('fp-flow-container-inner');
         this.element.appendChild(this.canvas);
         this.canvasEl = document.createElement('canvas');
         this.canvasEl.id = 'lineCanvas';
         this.canvasEl.classList.add('line-canvas');
         this.canvas.appendChild(this.canvasEl);
-        this.canvasEl.width = canvas.offsetWidth;
-        this.canvasEl.height = canvas.offsetHeight;
+        this.canvasEl.width = this.canvas.offsetWidth;
+        this.canvasEl.height = this.canvas.offsetHeight;
         this.ctx = this.canvasEl.getContext('2d');
         this.init();
         // Handle parent scroll behaviour
@@ -256,3 +256,10 @@ export class Flow {
 }
 
 window.Flow = Flow;
+fetch('main.css')
+  .then(response => response.text())
+  .then(cssText => {
+    const styleEl = document.createElement('style');
+    styleEl.textContent = cssText;
+    document.head.appendChild(styleEl);
+  })

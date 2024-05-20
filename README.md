@@ -5,9 +5,8 @@ FP Flow is a flow library that is very small and built on vanillajs. You can pas
 ## Installation
 
 1. Install the package by running `npm install`.
-2. Import the `main.css` that is passed with this package, into your project.
-3. Create a container with class `fp-scroll-container` and make sure it takes the height you intend for. Apply height if necessary. Careful, it has to match the class name exactly.
-4. You are ready to go.
+2. Create a container with class `fp-flow-container` and make sure it takes the height you intend for. Apply height if necessary. Careful, it has to match the class name exactly.
+3. You are ready to go.
 
 ## Usage
 

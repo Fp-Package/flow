@@ -5,9 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
-    <link rel="stylesheet" href="main.css">
     <link rel="stylesheet" href="style.css">
-    <script id="flowScript" src="main.js" type="module"></script>
+    <script id="flowScript" src="index.js" type="module"></script>
 </head>
 
 <body>
@@ -16,7 +15,7 @@
             <button class="btn" id="an">Add Node</button>
             <button class="btn" id="ac" disabled>Add Connection</button>
         </div>
-        <div class="fp-scroll-container"></div>
+        <div class="fp-flow-container"></div>
     </div>
     <script>
         document.getElementById('flowScript').addEventListener('load', () => {
