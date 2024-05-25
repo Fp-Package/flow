@@ -2,6 +2,9 @@
 
 FP Flow is a flow library that is very small and built on vanillajs. You can pass on a simple node of your html element and it creates the node. You can create the connections as well very easily, with simple javascript.
 
+## Github
+Go to [flow's github page](https://github.com/Fp-Package/flow) to refer to example code and proper uses.
+
 ## Installation
 
 1. Install the package by running `npm install`.

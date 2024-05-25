@@ -68,7 +68,7 @@ export class Flow {
     }
 
     addNode(element) {
-        const id = this.nodes.length;
+        const id = Math.max(...this.nodes.map((node) => node.id), 0) + 1;
         const node = new Node(element, id);
         this.canvas.appendChild(element);
         node.containerElement = this.element;
