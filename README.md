@@ -66,6 +66,20 @@ Saved flow object
 #### Description
 Once you saved your rendition data, call `renderSavedFlow` method to render the the flow next time after you brought the data from API. Remember to create the nodes with elements by calling `node.element = <html element>` and their state, that you saved to `node.data` property. <strong>Don't call the `addNode` or `addConnection` or any other method before calling `renderSavedFlow` when you have the pre-saved flow data and you want to render that flow.</strong>
 
+#### Eg.
+<pre>
+const flow = new Flow(); 
+flow.nodes.forEach(node => { 
+    const el = document.createElement('div');
+    el.innerText = "Hi";
+});
+flow.renderSavedFlow(savedFlowObj);
+</pre>
+
+### refreshFlow
+
+#### Description
+Call this method to refresh the canvas anytime you do any change to the elements.
 
 ## Properties
 There are mainly two types of properties. One is for the flow object we created from the Flow class, another is the node object we got from calling addNode.

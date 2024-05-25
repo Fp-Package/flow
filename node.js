@@ -1,12 +1,12 @@
 export class Node {
-    startX = 0;
-    startY = 0;
+    startX = null;
+    startY = null;
     element = null;
     mousemoveHandler = this.mousemove.bind(this);
     mouseupHandler = this.mouseup.bind(this);
     nodeMoveCb = null;
-    centerX = 0;
-    centerY = 0;
+    centerX = null;
+    centerY = null;
     data = {};
     id = null;
     connectedNodes = [];
@@ -22,6 +22,8 @@ export class Node {
         this.id = id;
         this.element.addEventListener('mousedown', this.mousedown.bind(this));
         setTimeout(() => {
+            this.startX = this.element.offsetLeft;
+            this.startY = this.element.offsetTop;
             this.setCenter();
         }, 0);
     };

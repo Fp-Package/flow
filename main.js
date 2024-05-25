@@ -36,7 +36,12 @@ export class Flow {
         this.canvasEl.height = this.canvas.offsetHeight;
         this.ctx = this.canvasEl.getContext('2d');
         this.init();
-        // Handle parent scroll behaviour
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            this.canvasEl.width = this.canvas.offsetWidth;
+            this.canvasEl.height = this.canvas.offsetHeight;
+            this.refreshCanvas();
+        });
     }
 
     drawLine(x1, y1, x2, y2) {
@@ -68,7 +73,7 @@ export class Flow {
     }
 
     addNode(element) {
-        const id = Math.max(...this.nodes.map((node) => node.id), 0) + 1;
+        const id = Math.max(...this.nodes.map((node) => node.id), -1) + 1;
         const node = new Node(element, id);
         this.canvas.appendChild(element);
         node.containerElement = this.element;
@@ -212,6 +217,8 @@ export class Flow {
         mainReusableProps.forEach((prop) => {
             info[prop] = this[prop];
         });
+        info.requiredWidth = this.canvas.offsetWidth;
+        info.requiredHeight = this.canvas.offsetHeight;
         const nodeReusableProps = [
             "startX",
             "startY",
@@ -220,6 +227,7 @@ export class Flow {
             "connectedNodes"
         ];
         info.nodes = info.nodes.map((node) => {
+            node.setCenter();
             const nodeInfo = {};
             nodeReusableProps.forEach((prop) => {
                 nodeInfo[prop] = node[prop];
@@ -231,11 +239,23 @@ export class Flow {
 
     renderSavedFlow(data) {
         for (const key in data) {
-            if (key !== 'nodes') {
+            if (!(key === 'nodes' || key === "requiredWidth" || key === "requiredHeight")) {
                 this[key] = data[key];
             }
         }
-        this.canvas.style.transform = `translate(${this.canvasTranslateX}px, ${this.canvasTranslateY}px) scale(${this.lastScale})`;
+        let scaleX = this.lastScale;
+        let scaleY = this.lastScale;
+        if (this.canvasEl.width < data.requiredWidth) {
+            this.canvasEl.width = data.requiredWidth;
+            const multiplier = data.requiredWidth / this.canvasEl.offsetWidth;
+            scaleX = this.lastScale * multiplier;
+        }
+        if (this.canvasEl.height < data.requiredHeight) {
+            this.canvasEl.height = data.requiredHeight;
+            const multiplier = data.requiredHeight / this.canvasEl.offsetHeight;
+            scaleY = this.lastScale * multiplier;
+        }
+        this.canvas.style.transform = `translate(${this.canvasTranslateX}px, ${this.canvasTranslateY}px) scale(${scaleX}, ${scaleY})`;
         data.nodes.forEach((node) => {
             const element = node.element || document.createElement('div');
             const newNode = this.addNode(element);
@@ -252,6 +272,15 @@ export class Flow {
             this.refreshCanvas();
         });
     }
+
+    refreshFlow() {
+        setTimeout(() => {
+            this.nodes.forEach((node) => {
+                node.setCenter();
+            });
+            this.refreshCanvas();
+        });
+    };
 
 }
 
