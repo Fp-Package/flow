@@ -1,0 +1,94 @@
+import { ConnectionIcon, DeleteIcon, EditIcon } from "./icons.js";
+
+export class FlowNode {
+    nodeId: number = 0;
+    nodeName: string;
+    nodeElement: HTMLElement;
+    onRemove: Function;
+    onConnection: Function;
+    connections: { nodeId: number; type: 'out' | 'in' }[] = [];
+    drawConnections: Function;
+    parentScrollPosition: Function;
+
+    constructor(private id: number, private el?: HTMLElement, private name?: string) {
+        this.nodeId = id;
+        this.nodeName = name || ('Node ' + this.nodeId);
+        this.createNode(this.el, name);
+    }
+
+    private createNode(el: HTMLElement, name?: string): void {
+        const node = document.createElement('div');
+        node.classList.add('fp-flowjs-node', 'fp-flowjs-node-' + this.nodeId);
+        const title = document.createElement('div');
+
+        // Create title element
+        title.classList.add('fp-flowjs-node-title');
+        title.innerText = this.nodeName;
+
+        // Create node controllers
+        const controllers = document.createElement('div');
+        controllers.classList.add('fp-flowjs-node-controllers');
+        const deleteIcon = DeleteIcon();
+        const editIcon = EditIcon();
+        const connectionIcon = ConnectionIcon();
+        controllers.appendChild(editIcon);
+        controllers.appendChild(connectionIcon);
+        controllers.appendChild(deleteIcon);
+
+        connectionIcon.addEventListener('click', () => { this.onConnection(this) });
+        deleteIcon.addEventListener('click', () => { this.onRemove(this.nodeId) });
+
+        // Create node header
+        const header = document.createElement('div');
+        header.classList.add('fp-flowjs-node-header');
+        header.appendChild(title);
+        header.appendChild(controllers);
+
+        // Append header to node
+        node.appendChild(header);
+
+        // Create body element
+        const body = document.createElement('div');
+        body.classList.add('fp-flowjs-node-body');
+        if (el) {
+            body.appendChild(el);
+        }
+        node.appendChild(body);
+        this.nodeElement = node;
+
+        this.watchMove();
+    }
+
+    watchMove() {
+        let isDragging = false;
+        let offsetX = 0;
+        let offsetY = 0;
+
+        this.nodeElement.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            offsetX = e.offsetX;
+            offsetY = e.offsetY;
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                const { x, y } = this.parentScrollPosition();
+                this.nodeElement.style.left = (x + e.clientX - offsetX) + 'px';
+                this.nodeElement.style.top = (y + e.clientY - offsetY) + 'px';
+                this.drawConnections();
+            }
+        });
+
+        window.addEventListener('mouseup', () => {
+            isDragging = false;
+        });
+    }
+
+    get centerX() {
+        return this.nodeElement.offsetLeft + (this.nodeElement.offsetWidth / 2);
+    }
+
+    get centerY() {
+        return this.nodeElement.offsetTop + (this.nodeElement.offsetHeight / 2);
+    }
+}

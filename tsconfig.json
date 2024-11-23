@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "target": "es6",      
+    "module": "ESNext",
+    "rootDir": "./ts",
+    "outDir": "./",  
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "strict": false,
+    "moduleResolution": "node",
+  },
+  "include": [
+    "ts/**/*"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}
