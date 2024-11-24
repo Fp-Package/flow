@@ -89,6 +89,8 @@ var FlowNode = class {
     let offsetX = 0;
     let offsetY = 0;
     this.nodeElement.addEventListener("mousedown", (e) => {
+      e.stopPropagation();
+      this.onNodeMove(true);
       isDragging = true;
       offsetX = e.offsetX;
       offsetY = e.offsetY;
@@ -96,13 +98,14 @@ var FlowNode = class {
     window.addEventListener("mousemove", (e) => {
       if (isDragging) {
         const { x, y } = this.parentScrollPosition();
-        this.nodeElement.style.left = x + e.clientX - offsetX + "px";
-        this.nodeElement.style.top = y + e.clientY - offsetY + "px";
+        this.nodeElement.style.left = (x + e.clientX - offsetX) * this.zoomPosition() + "px";
+        this.nodeElement.style.top = (y + e.clientY - offsetY) * this.zoomPosition() + "px";
         this.drawConnections();
       }
     });
-    window.addEventListener("mouseup", () => {
+    window.addEventListener("mouseup", (e) => {
       isDragging = false;
+      this.onNodeMove(false);
     });
   }
   get centerX() {
@@ -122,6 +125,7 @@ var FlowJS = class {
     this.currentZoom = 1;
     this.elementScale = 20;
     this.transformLevel = 2e-3;
+    this.isOneNodeMoving = false;
     /**
      * Add a node to the flow
      * @param el HTMLElement to show inside the node
@@ -136,13 +140,18 @@ var FlowJS = class {
       node.onRemove = this.removeNode;
       node.onConnection = this.connectNodes;
       node.drawConnections = this.drawConnections;
-      setTimeout(() => {
-        const { scrollLeft, scrollTop } = this.parentElement;
-        node.nodeElement.style.left = scrollLeft * this.currentZoom + "px";
-        node.nodeElement.style.top = scrollTop * this.currentZoom + "px";
-      });
+      const boundingClientRect = this.containerElement.getBoundingClientRect();
+      const { left, top } = boundingClientRect;
+      node.nodeElement.style.left = left * -1 / this.currentZoom + "px";
+      node.nodeElement.style.top = top * -1 / this.currentZoom + "px";
       node.parentScrollPosition = () => {
         return { x: this.parentElement.scrollLeft, y: this.parentElement.scrollTop };
+      };
+      node.zoomPosition = () => {
+        return this.currentZoom;
+      };
+      node.onNodeMove = (bool) => {
+        this.isOneNodeMoving = bool;
       };
     };
     /**
@@ -242,10 +251,32 @@ var FlowJS = class {
     this.parentElement.style.overflow = "auto";
   }
   handleScroll() {
-    this.containerElement.addEventListener("mousedown", () => {
+    let isDragging = false;
+    let startClientX = 0;
+    let startClientY = 0;
+    let scrollLeft;
+    let scrollTop;
+    this.containerElement.addEventListener("mousedown", (e) => {
       this.containerElement.style.cursor = "grabbing";
+      scrollLeft = this.parentElement.scrollLeft / this.currentZoom;
+      scrollTop = this.parentElement.scrollTop / this.currentZoom;
+      isDragging = true;
+      startClientX = e.clientX;
+      startClientY = e.clientY;
+    });
+    this.containerElement.addEventListener("mousemove", (e) => {
+      if (isDragging && !this.isOneNodeMoving) {
+        const newScrollLeft = (scrollLeft + startClientX - e.clientX) * this.currentZoom;
+        const newScrollTop = (scrollTop + startClientY - e.clientY) * this.currentZoom;
+        this.parentElement.scrollLeft = newScrollLeft;
+        this.parentElement.scrollTop = newScrollTop;
+      }
     });
     this.containerElement.addEventListener("mouseup", () => {
+      if (this.isOneNodeMoving) {
+        return;
+      }
+      isDragging = false;
       this.containerElement.style.cursor = "initial";
     });
   }
@@ -293,10 +324,10 @@ var FlowJS = class {
   }
   handleZoom() {
     this.parentElement.addEventListener("wheel", (e) => {
+      e.preventDefault();
       if (!e.ctrlKey) {
         return;
       }
-      e.preventDefault();
       const deltaY = e.deltaY;
       if (deltaY > 0) {
         this.currentZoom -= this.transformLevel;

@@ -12,6 +12,7 @@ export default class FlowJS {
     private transformLevel = 0.002;
     private initialWidth: number;
     private initialHeight: number;
+    private isOneNodeMoving = false;
 
     constructor(private el: HTMLElement) {
         console.log('flow', this);
@@ -57,11 +58,35 @@ export default class FlowJS {
     }
 
     private handleScroll() {
-        this.containerElement.addEventListener('mousedown', () => {
+        let isDragging = false;
+        let startClientX = 0;
+        let startClientY = 0;
+        let scrollLeft: number;
+        let scrollTop: number;
+
+        this.containerElement.addEventListener('mousedown', (e) => {
             this.containerElement.style.cursor = 'grabbing';
+            scrollLeft = this.parentElement.scrollLeft / this.currentZoom;
+            scrollTop = this.parentElement.scrollTop / this.currentZoom;
+            isDragging = true;
+            startClientX = e.clientX;
+            startClientY = e.clientY;
+        });
+
+        this.containerElement.addEventListener('mousemove', (e) => {
+            if (isDragging && !this.isOneNodeMoving) {
+                const newScrollLeft = (scrollLeft + startClientX - e.clientX) * this.currentZoom;
+                const newScrollTop = (scrollTop + startClientY - e.clientY) * this.currentZoom;
+                this.parentElement.scrollLeft = newScrollLeft;
+                this.parentElement.scrollTop = newScrollTop;
+            }
         });
 
         this.containerElement.addEventListener('mouseup', () => {
+            if (this.isOneNodeMoving) {
+                return;
+            }
+            isDragging = false;
             this.containerElement.style.cursor = 'initial';
         });
     }
@@ -104,14 +129,20 @@ export default class FlowJS {
         node.onRemove = this.removeNode;
         node.onConnection = this.connectNodes;
         node.drawConnections = this.drawConnections;
-        setTimeout(() => {
-            const { scrollLeft, scrollTop } = this.parentElement;
-            node.nodeElement.style.left = (scrollLeft * this.currentZoom) + 'px';
-            node.nodeElement.style.top = (scrollTop * this.currentZoom) + 'px';
-        });
+        const boundingClientRect = this.containerElement.getBoundingClientRect();
+        const { left, top } = boundingClientRect;
+        node.nodeElement.style.left = (left * (-1) / this.currentZoom) + 'px';
+        node.nodeElement.style.top = (top * (-1) / this.currentZoom) + 'px';
+
         node.parentScrollPosition = () => {
             return { x: this.parentElement.scrollLeft, y: this.parentElement.scrollTop };
         }
+        node.zoomPosition = () => {
+            return this.currentZoom;
+        };
+        node.onNodeMove = (bool: boolean) => {
+            this.isOneNodeMoving = bool;
+        };
     }
 
     /**
@@ -132,7 +163,7 @@ export default class FlowJS {
      * Connect two nodes
      * @param fromNode The id of the node to connect from
      */
-    connectNodes = (fromNode: FlowNode): void => {
+    private connectNodes = (fromNode: FlowNode): void => {
         console.log('connectNodes');
         // Connect nodes logic here
         const el = document.createElement('div');
@@ -173,7 +204,7 @@ export default class FlowJS {
         toNode.connections.push({ nodeId: fromNode.nodeId, type: 'in' });
     }
 
-    drawConnections = () => {
+    private drawConnections = () => {
         this.ctx.clearRect(0, 0, this.canvasElement.width, this.canvasElement.height);
         this.nodes.forEach(node => {
             if (node) {
@@ -189,7 +220,7 @@ export default class FlowJS {
         });
     }
 
-    drawLine(fromNode: FlowNode, toNode: FlowNode) {
+    private drawLine(fromNode: FlowNode, toNode: FlowNode) {
         this.ctx.beginPath();
         this.ctx.moveTo(fromNode.centerX, fromNode.centerY);
         this.ctx.lineTo(toNode.centerX, toNode.centerY);
@@ -198,17 +229,16 @@ export default class FlowJS {
         this.ctx.stroke();
     }
 
-    get ctx() {
+    private get ctx() {
         return this.canvasElement.getContext('2d');
     }
 
-    handleZoom() {
+    private handleZoom() {
         this.parentElement.addEventListener('wheel', (e) => {
-            if (!e.ctrlKey) {
-                // Triggered by two finger scroll
-                return;
-            }
             e.preventDefault();
+            if (!e.ctrlKey) {
+                return; // Triggered by two finger scroll
+            }
             const deltaY = e.deltaY;
             if (deltaY > 0) {
                 this.currentZoom -= this.transformLevel;
@@ -224,7 +254,7 @@ export default class FlowJS {
         });
     }
 
-    get minZoom() {
+    private get minZoom() {
         return Math.max(
             this.parentElement.clientWidth / this.initialWidth,
             this.parentElement.clientHeight / this.initialHeight

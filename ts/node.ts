@@ -9,6 +9,9 @@ export class FlowNode {
     connections: { nodeId: number; type: 'out' | 'in' }[] = [];
     drawConnections: Function;
     parentScrollPosition: Function;
+    zoomPosition: Function;
+    containerElement: HTMLElement;
+    onNodeMove: Function;
 
     constructor(private id: number, private el?: HTMLElement, private name?: string) {
         this.nodeId = id;
@@ -65,6 +68,8 @@ export class FlowNode {
         let offsetY = 0;
 
         this.nodeElement.addEventListener('mousedown', (e) => {
+            e.stopPropagation();
+            this.onNodeMove(true);
             isDragging = true;
             offsetX = e.offsetX;
             offsetY = e.offsetY;
@@ -73,14 +78,15 @@ export class FlowNode {
         window.addEventListener('mousemove', (e) => {
             if (isDragging) {
                 const { x, y } = this.parentScrollPosition();
-                this.nodeElement.style.left = (x + e.clientX - offsetX) + 'px';
-                this.nodeElement.style.top = (y + e.clientY - offsetY) + 'px';
+                this.nodeElement.style.left = (x + e.clientX - offsetX) * this.zoomPosition() + 'px';
+                this.nodeElement.style.top = (y + e.clientY - offsetY) * this.zoomPosition() + 'px';
                 this.drawConnections();
             }
         });
 
-        window.addEventListener('mouseup', () => {
+        window.addEventListener('mouseup', (e) => {
             isDragging = false;
+            this.onNodeMove(false);
         });
     }
 
