@@ -121,7 +121,7 @@ var FlowJS = class {
     this.nodes = [];
     this.currentZoom = 1;
     this.elementScale = 20;
-    this.transformLevel = 0.02;
+    this.transformLevel = 2e-3;
     /**
      * Add a node to the flow
      * @param el HTMLElement to show inside the node
@@ -136,9 +136,11 @@ var FlowJS = class {
       node.onRemove = this.removeNode;
       node.onConnection = this.connectNodes;
       node.drawConnections = this.drawConnections;
-      const { scrollLeft, scrollTop } = this.parentElement;
-      node.nodeElement.style.left = scrollLeft * this.currentZoom + "px";
-      node.nodeElement.style.top = scrollTop * this.currentZoom + "px";
+      setTimeout(() => {
+        const { scrollLeft, scrollTop } = this.parentElement;
+        node.nodeElement.style.left = scrollLeft * this.currentZoom + "px";
+        node.nodeElement.style.top = scrollTop * this.currentZoom + "px";
+      });
       node.parentScrollPosition = () => {
         return { x: this.parentElement.scrollLeft, y: this.parentElement.scrollTop };
       };
@@ -304,13 +306,15 @@ var FlowJS = class {
       if (this.currentZoom < this.minZoom) {
         this.currentZoom = this.minZoom;
       }
-      this.containerElement.style.transform = `scale(${this.currentZoom})`;
+      const translateX = this.initialWidth * (1 - this.currentZoom) / 2;
+      const translateY = this.initialHeight * (1 - this.currentZoom) / 2;
+      this.containerElement.style.transform = `scale(${this.currentZoom}) translate(${translateX}px, ${translateY}px)`;
     });
   }
   get minZoom() {
     return Math.max(
-      this.parentElement.clientWidth / this.containerElement.offsetWidth,
-      this.parentElement.clientHeight / this.containerElement.offsetHeight
+      this.parentElement.clientWidth / this.initialWidth,
+      this.parentElement.clientHeight / this.initialHeight
     );
   }
 };

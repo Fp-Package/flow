@@ -9,7 +9,7 @@ export default class FlowJS {
     private canvasElement: HTMLCanvasElement;
     private currentZoom = 1;
     private elementScale = 20;
-    private transformLevel = 0.02;
+    private transformLevel = 0.002;
     private initialWidth: number;
     private initialHeight: number;
 
@@ -104,9 +104,11 @@ export default class FlowJS {
         node.onRemove = this.removeNode;
         node.onConnection = this.connectNodes;
         node.drawConnections = this.drawConnections;
-        const { scrollLeft, scrollTop } = this.parentElement;
-        node.nodeElement.style.left = (scrollLeft * this.currentZoom) + 'px';
-        node.nodeElement.style.top = (scrollTop * this.currentZoom) + 'px';
+        setTimeout(() => {
+            const { scrollLeft, scrollTop } = this.parentElement;
+            node.nodeElement.style.left = (scrollLeft * this.currentZoom) + 'px';
+            node.nodeElement.style.top = (scrollTop * this.currentZoom) + 'px';
+        });
         node.parentScrollPosition = () => {
             return { x: this.parentElement.scrollLeft, y: this.parentElement.scrollTop };
         }
@@ -216,14 +218,16 @@ export default class FlowJS {
             if (this.currentZoom < this.minZoom) {
                 this.currentZoom = this.minZoom;
             }
-            this.containerElement.style.transform = `scale(${this.currentZoom})`;
+            const translateX = this.initialWidth * (1 - this.currentZoom) / 2;
+            const translateY = this.initialHeight * (1 - this.currentZoom) / 2;
+            this.containerElement.style.transform = `scale(${this.currentZoom}) translate(${translateX}px, ${translateY}px)`;
         });
     }
 
     get minZoom() {
         return Math.max(
-            this.parentElement.clientWidth / this.containerElement.offsetWidth,
-            this.parentElement.clientHeight / this.containerElement.offsetHeight
+            this.parentElement.clientWidth / this.initialWidth,
+            this.parentElement.clientHeight / this.initialHeight
         );
     }
 }
