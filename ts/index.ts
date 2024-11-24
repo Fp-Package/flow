@@ -10,6 +10,8 @@ export default class FlowJS {
     private currentZoom = 1;
     private elementScale = 20;
     private transformLevel = 0.02;
+    private initialWidth: number;
+    private initialHeight: number;
 
     constructor(private el: HTMLElement) {
         console.log('flow', this);
@@ -31,8 +33,10 @@ export default class FlowJS {
         this.containerElement = document.createElement('div');
         el.appendChild(this.containerElement);
         this.containerElement.classList.add('fp-flowjs-container');
-        this.containerElement.style.width = this.parentElement.offsetWidth * this.elementScale + 'px';
-        this.containerElement.style.height = this.parentElement.offsetHeight * this.elementScale + 'px';
+        this.initialWidth = this.parentElement.offsetWidth * this.elementScale;
+        this.initialHeight = this.parentElement.offsetHeight * this.elementScale;
+        this.containerElement.style.width = this.initialWidth + 'px';
+        this.containerElement.style.height = this.initialHeight + 'px';
     }
 
     private createCanvasElement() {
@@ -100,7 +104,6 @@ export default class FlowJS {
         node.onRemove = this.removeNode;
         node.onConnection = this.connectNodes;
         node.drawConnections = this.drawConnections;
-        console.log(this.currentZoom)
         const { scrollLeft, scrollTop } = this.parentElement;
         node.nodeElement.style.left = (scrollLeft * this.currentZoom) + 'px';
         node.nodeElement.style.top = (scrollTop * this.currentZoom) + 'px';
@@ -214,10 +217,6 @@ export default class FlowJS {
                 this.currentZoom = this.minZoom;
             }
             this.containerElement.style.transform = `scale(${this.currentZoom})`;
-            console.log(this.parentElement.scrollLeft, this.parentElement.scrollTop, this.currentZoom);
-            //this.parentElement.scrollLeft = this.parentElement.scrollLeft * this.currentZoom - this.parentElement.clientWidth;
-            //this.parentElement.scrollTop = this.parentElement.scrollTop * this.currentZoom - this.parentElement.clientHeight;
-            console.log(this.parentElement.scrollLeft, this.parentElement.scrollTop);
         });
     }
 

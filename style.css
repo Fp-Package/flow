@@ -5,11 +5,11 @@
 }
 
 .fp-flow-container {
-  scrollbar-width: none;
+  /* scrollbar-width: none; */
 }
 
 .fp-flow-container::-webkit-scrollbar {
-  display: none;
+  /* display: none; */
 }
 
 .fp-flowjs-node {

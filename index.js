@@ -136,7 +136,6 @@ var FlowJS = class {
       node.onRemove = this.removeNode;
       node.onConnection = this.connectNodes;
       node.drawConnections = this.drawConnections;
-      console.log(this.currentZoom);
       const { scrollLeft, scrollTop } = this.parentElement;
       node.nodeElement.style.left = scrollLeft * this.currentZoom + "px";
       node.nodeElement.style.top = scrollTop * this.currentZoom + "px";
@@ -221,8 +220,10 @@ var FlowJS = class {
     this.containerElement = document.createElement("div");
     el.appendChild(this.containerElement);
     this.containerElement.classList.add("fp-flowjs-container");
-    this.containerElement.style.width = this.parentElement.offsetWidth * this.elementScale + "px";
-    this.containerElement.style.height = this.parentElement.offsetHeight * this.elementScale + "px";
+    this.initialWidth = this.parentElement.offsetWidth * this.elementScale;
+    this.initialHeight = this.parentElement.offsetHeight * this.elementScale;
+    this.containerElement.style.width = this.initialWidth + "px";
+    this.containerElement.style.height = this.initialHeight + "px";
   }
   createCanvasElement() {
     this.canvasElement = document.createElement("canvas");
@@ -304,8 +305,6 @@ var FlowJS = class {
         this.currentZoom = this.minZoom;
       }
       this.containerElement.style.transform = `scale(${this.currentZoom})`;
-      console.log(this.parentElement.scrollLeft, this.parentElement.scrollTop, this.currentZoom);
-      console.log(this.parentElement.scrollLeft, this.parentElement.scrollTop);
     });
   }
   get minZoom() {
