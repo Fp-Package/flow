@@ -92,8 +92,8 @@ var FlowNode = class {
       e.stopPropagation();
       this.onNodeMove(true);
       isDragging = true;
-      offsetX = e.offsetX;
-      offsetY = e.offsetY;
+      offsetX = e.offsetX * this.zoomPosition();
+      offsetY = e.offsetY * this.zoomPosition();
     });
     window.addEventListener("mousemove", (e) => {
       if (isDragging) {
@@ -123,9 +123,12 @@ var FlowJS = class {
     this.nodeId = 0;
     this.nodes = [];
     this.currentZoom = 1;
-    this.elementScale = 20;
-    this.transformLevel = 2e-3;
+    this.elementScale = 15;
+    this.transformLevel = 15e-4;
     this.isOneNodeMoving = false;
+    this.lineWidth = 1.5;
+    this.MOUSE_MOVE_DELAY = 3e3;
+    this.SCROLLBAR_WIDTH = 6;
     /**
      * Add a node to the flow
      * @param el HTMLElement to show inside the node
@@ -265,6 +268,11 @@ var FlowJS = class {
       startClientY = e.clientY;
     });
     this.containerElement.addEventListener("mousemove", (e) => {
+      this.parentElement.classList.add("add-scrolls");
+      clearTimeout(this.mouseMoveTimer);
+      this.mouseMoveTimer = setTimeout(() => {
+        this.parentElement.classList.remove("add-scrolls");
+      }, this.MOUSE_MOVE_DELAY);
       if (isDragging && !this.isOneNodeMoving) {
         const newScrollLeft = (scrollLeft + startClientX - e.clientX) * this.currentZoom;
         const newScrollTop = (scrollTop + startClientY - e.clientY) * this.currentZoom;
@@ -278,6 +286,14 @@ var FlowJS = class {
       }
       isDragging = false;
       this.containerElement.style.cursor = "initial";
+    });
+    this.parentElement.addEventListener("scroll", () => {
+      this.parentElement.classList.add("add-scrolls");
+      clearTimeout(this.mouseMoveTimer);
+      this.mouseMoveTimer = setTimeout(() => {
+        this.parentElement.classList.remove("add-scrolls");
+      }, this.MOUSE_MOVE_DELAY);
+      this.watchMinMaxScroll();
     });
   }
   setScrollPosition() {
@@ -316,7 +332,7 @@ var FlowJS = class {
     this.ctx.moveTo(fromNode.centerX, fromNode.centerY);
     this.ctx.lineTo(toNode.centerX, toNode.centerY);
     this.ctx.strokeStyle = "#eeeeee";
-    this.ctx.lineWidth = 2;
+    this.ctx.lineWidth = this.lineWidth / this.currentZoom;
     this.ctx.stroke();
   }
   get ctx() {
@@ -324,10 +340,10 @@ var FlowJS = class {
   }
   handleZoom() {
     this.parentElement.addEventListener("wheel", (e) => {
-      e.preventDefault();
       if (!e.ctrlKey) {
         return;
       }
+      e.preventDefault();
       const deltaY = e.deltaY;
       if (deltaY > 0) {
         this.currentZoom -= this.transformLevel;
@@ -340,6 +356,7 @@ var FlowJS = class {
       const translateX = this.initialWidth * (1 - this.currentZoom) / 2;
       const translateY = this.initialHeight * (1 - this.currentZoom) / 2;
       this.containerElement.style.transform = `scale(${this.currentZoom}) translate(${translateX}px, ${translateY}px)`;
+      this.watchMinMaxScroll();
     });
   }
   get minZoom() {
@@ -347,6 +364,29 @@ var FlowJS = class {
       this.parentElement.clientWidth / this.initialWidth,
       this.parentElement.clientHeight / this.initialHeight
     );
+  }
+  watchMinMaxScroll() {
+    if (this.currentZoom < 1) {
+      const zoomDiff = 1 - this.currentZoom;
+      const minScrollWidth = this.containerElement.offsetWidth * zoomDiff;
+      const minScrollHeight = this.containerElement.offsetHeight * zoomDiff;
+      const minScrollLeftAllowed = Math.ceil(minScrollWidth);
+      const minScrollTopAllowed = Math.ceil(minScrollHeight);
+      const maxScrollLeftAllowed = (this.parentElement.scrollWidth - this.parentElement.offsetWidth) * this.currentZoom;
+      const maxScrollTopAllowed = (this.parentElement.scrollHeight - this.parentElement.offsetHeight) * this.currentZoom;
+      if (this.parentElement.scrollLeft < minScrollLeftAllowed) {
+        this.parentElement.scrollLeft = minScrollLeftAllowed;
+      }
+      if (this.parentElement.scrollLeft > maxScrollLeftAllowed) {
+        this.parentElement.scrollLeft = maxScrollLeftAllowed;
+      }
+      if (this.parentElement.scrollTop < minScrollTopAllowed) {
+        this.parentElement.scrollTop = minScrollTopAllowed;
+      }
+      if (this.parentElement.scrollTop > maxScrollTopAllowed) {
+        this.parentElement.scrollTop = maxScrollTopAllowed;
+      }
+    }
   }
 };
 window["FlowJS"] = FlowJS;

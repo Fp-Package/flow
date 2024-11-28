@@ -1,16 +1,42 @@
 .fp-flowjs-container {
   position: relative;
   background: #191919;
-  transform-origin: center;
+  transform-origin: left top;
   transition: transform 0.1s;
 }
 
 .fp-flow-container {
-  scrollbar-width: none;
-}
+  scrollbar-width: 0px;
 
-.fp-flow-container::-webkit-scrollbar {
-  display: none;
+  &.add-scrolls {
+    scrollbar-width: 8px;
+    &::-webkit-scrollbar {
+      display: initial;
+    }
+  }
+
+  &::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+    display: none;
+  }
+
+  &::-webkit-scrollbar-corner {
+    background-color: #191919;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #191919;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 3px;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: #555;
+  }
 }
 
 .fp-flowjs-node {
@@ -28,6 +54,9 @@
   z-index: 1;
   left: 0;
   top: 0;
+  top: 0;
+  right: 0;
+  background-color: transparent;
 }
 
 .fp-flowjs-node-title {

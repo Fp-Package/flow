@@ -71,8 +71,8 @@ export class FlowNode {
             e.stopPropagation();
             this.onNodeMove(true);
             isDragging = true;
-            offsetX = e.offsetX;
-            offsetY = e.offsetY;
+            offsetX = e.offsetX * this.zoomPosition();
+            offsetY = e.offsetY * this.zoomPosition();
         });
 
         window.addEventListener('mousemove', (e) => {

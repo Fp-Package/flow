@@ -8,11 +8,15 @@ export default class FlowJS {
     private modalElement: HTMLElement;
     private canvasElement: HTMLCanvasElement;
     private currentZoom = 1;
-    private elementScale = 20;
-    private transformLevel = 0.002;
+    private elementScale = 15;
+    private transformLevel = 0.0015;
     private initialWidth: number;
     private initialHeight: number;
     private isOneNodeMoving = false;
+    private lineWidth = 1.5;
+    private mouseMoveTimer: any;
+    private readonly MOUSE_MOVE_DELAY = 3000;
+    private readonly SCROLLBAR_WIDTH = 6;
 
     constructor(private el: HTMLElement) {
         console.log('flow', this);
@@ -74,6 +78,13 @@ export default class FlowJS {
         });
 
         this.containerElement.addEventListener('mousemove', (e) => {
+
+            this.parentElement.classList.add('add-scrolls');
+            clearTimeout(this.mouseMoveTimer);
+            this.mouseMoveTimer = setTimeout(() => {
+                this.parentElement.classList.remove('add-scrolls');
+            }, this.MOUSE_MOVE_DELAY);
+
             if (isDragging && !this.isOneNodeMoving) {
                 const newScrollLeft = (scrollLeft + startClientX - e.clientX) * this.currentZoom;
                 const newScrollTop = (scrollTop + startClientY - e.clientY) * this.currentZoom;
@@ -88,6 +99,16 @@ export default class FlowJS {
             }
             isDragging = false;
             this.containerElement.style.cursor = 'initial';
+        });
+
+        this.parentElement.addEventListener('scroll', () => {
+            this.parentElement.classList.add('add-scrolls');
+            clearTimeout(this.mouseMoveTimer);
+            this.mouseMoveTimer = setTimeout(() => {
+                this.parentElement.classList.remove('add-scrolls');
+            }, this.MOUSE_MOVE_DELAY);
+
+            this.watchMinMaxScroll()
         });
     }
 
@@ -225,7 +246,7 @@ export default class FlowJS {
         this.ctx.moveTo(fromNode.centerX, fromNode.centerY);
         this.ctx.lineTo(toNode.centerX, toNode.centerY);
         this.ctx.strokeStyle = '#eeeeee';
-        this.ctx.lineWidth = 2;
+        this.ctx.lineWidth = this.lineWidth / this.currentZoom;
         this.ctx.stroke();
     }
 
@@ -235,10 +256,10 @@ export default class FlowJS {
 
     private handleZoom() {
         this.parentElement.addEventListener('wheel', (e) => {
-            e.preventDefault();
             if (!e.ctrlKey) {
                 return; // Triggered by two finger scroll
             }
+            e.preventDefault();
             const deltaY = e.deltaY;
             if (deltaY > 0) {
                 this.currentZoom -= this.transformLevel;
@@ -251,6 +272,7 @@ export default class FlowJS {
             const translateX = this.initialWidth * (1 - this.currentZoom) / 2;
             const translateY = this.initialHeight * (1 - this.currentZoom) / 2;
             this.containerElement.style.transform = `scale(${this.currentZoom}) translate(${translateX}px, ${translateY}px)`;
+            this.watchMinMaxScroll();
         });
     }
 
@@ -259,6 +281,30 @@ export default class FlowJS {
             this.parentElement.clientWidth / this.initialWidth,
             this.parentElement.clientHeight / this.initialHeight
         );
+    }
+
+    private watchMinMaxScroll() {
+        if (this.currentZoom < 1) {
+            const zoomDiff = 1 - this.currentZoom;
+            const minScrollWidth = this.containerElement.offsetWidth * zoomDiff;
+            const minScrollHeight = this.containerElement.offsetHeight * zoomDiff;
+            const minScrollLeftAllowed = Math.ceil(minScrollWidth);
+            const minScrollTopAllowed = Math.ceil(minScrollHeight);
+            const maxScrollLeftAllowed = (this.parentElement.scrollWidth - this.parentElement.offsetWidth) * this.currentZoom;
+            const maxScrollTopAllowed = (this.parentElement.scrollHeight - this.parentElement.offsetHeight) * this.currentZoom;
+            if (this.parentElement.scrollLeft < minScrollLeftAllowed) {
+                this.parentElement.scrollLeft = minScrollLeftAllowed;
+            }
+            if (this.parentElement.scrollLeft > maxScrollLeftAllowed) {
+                this.parentElement.scrollLeft = maxScrollLeftAllowed;
+            }
+            if (this.parentElement.scrollTop < minScrollTopAllowed) {
+                this.parentElement.scrollTop = minScrollTopAllowed;
+            }
+            if (this.parentElement.scrollTop > maxScrollTopAllowed) {
+                this.parentElement.scrollTop = maxScrollTopAllowed;
+            }
+        }
     }
 }
 
