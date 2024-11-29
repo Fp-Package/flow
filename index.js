@@ -46,6 +46,7 @@ var FlowNode = class {
     this.name = name;
     this.nodeId = 0;
     this.connections = [];
+    this.metaData = {};
     this.nodeId = id;
     this.nodeName = name || "Node " + this.nodeId;
     this.createNode(this.el, name);
@@ -86,26 +87,39 @@ var FlowNode = class {
   }
   watchMove() {
     let isDragging = false;
-    let offsetX = 0;
-    let offsetY = 0;
+    let clientX = 0;
+    let clientY = 0;
+    let left = 0;
+    let top = 0;
     this.nodeElement.addEventListener("mousedown", (e) => {
       e.stopPropagation();
       this.onNodeMove(true);
+      this.nodeElement.style.userSelect = "none";
       isDragging = true;
-      offsetX = e.offsetX * this.zoomPosition();
-      offsetY = e.offsetY * this.zoomPosition();
+      clientX = e.clientX;
+      clientY = e.clientY;
+      left = this.nodeElement.offsetLeft;
+      top = this.nodeElement.offsetTop;
     });
     window.addEventListener("mousemove", (e) => {
       if (isDragging) {
-        const { x, y } = this.parentScrollPosition();
-        this.nodeElement.style.left = (x + e.clientX - offsetX) * this.zoomPosition() + "px";
-        this.nodeElement.style.top = (y + e.clientY - offsetY) * this.zoomPosition() + "px";
-        this.drawConnections();
+        let animationFrameId = null;
+        if (!animationFrameId) {
+          animationFrameId = requestAnimationFrame(() => {
+            this.nodeElement.style.left = left + e.clientX - clientX + "px";
+            this.nodeElement.style.top = top + e.clientY - clientY + "px";
+            this.drawConnections();
+            animationFrameId = null;
+          });
+        }
       }
     });
     window.addEventListener("mouseup", (e) => {
-      isDragging = false;
-      this.onNodeMove(false);
+      if (isDragging) {
+        isDragging = false;
+        this.onNodeMove(false);
+        this.nodeElement.style.userSelect = "auto";
+      }
     });
   }
   get centerX() {
@@ -120,14 +134,15 @@ var FlowNode = class {
 var FlowJS = class {
   constructor(el) {
     this.el = el;
-    this.nodeId = 0;
+    this.nextNodeId = 0;
     this.nodes = [];
     this.currentZoom = 1;
-    this.elementScale = 15;
-    this.transformLevel = 15e-4;
+    this.elementScale = 10;
+    this.transformLevel = 25e-4;
     this.isOneNodeMoving = false;
-    this.lineWidth = 1.5;
+    this.lineWidth = 1;
     this.MOUSE_MOVE_DELAY = 3e3;
+    this.LINE_COLOR = "#f95c57";
     this.SCROLLBAR_WIDTH = 6;
     /**
      * Add a node to the flow
@@ -136,9 +151,9 @@ var FlowJS = class {
      */
     this.addNode = (el, name) => {
       console.log("addNode");
-      const node = new FlowNode(this.nodeId, el, name);
+      const node = new FlowNode(this.nextNodeId, el, name);
       this.nodes.push(node);
-      this.nodeId++;
+      this.nextNodeId++;
       this.containerElement.appendChild(node.nodeElement);
       node.onRemove = this.removeNode;
       node.onConnection = this.connectNodes;
@@ -310,13 +325,19 @@ var FlowJS = class {
     const modalContent = document.createElement("div");
     modalContent.classList.add("flow-modal");
     modal.appendChild(modalContent);
-    this.containerElement.appendChild(modal);
+    this.parentElement.appendChild(modal);
     this.modalElement = modal;
     modal.addEventListener("click", (e) => {
       modal.classList.remove("show");
       modalContent.innerHTML = "";
     });
     modalContent.addEventListener("click", (e) => e.stopPropagation());
+  }
+  /**
+   * Set the flow with saved data
+   * @param flowInfo The saved flow data
+   */
+  setSavedFlow(flowInfo) {
   }
   drawConnection(fromNode, toNode) {
     const existingConnection = fromNode.connections.find((c) => c.nodeId === toNode.nodeId && c.type === "out");
@@ -331,9 +352,10 @@ var FlowJS = class {
     this.ctx.beginPath();
     this.ctx.moveTo(fromNode.centerX, fromNode.centerY);
     this.ctx.lineTo(toNode.centerX, toNode.centerY);
-    this.ctx.strokeStyle = "#eeeeee";
+    this.ctx.strokeStyle = this.LINE_COLOR;
     this.ctx.lineWidth = this.lineWidth / this.currentZoom;
     this.ctx.stroke();
+    this.drawArrow(fromNode, toNode);
   }
   get ctx() {
     return this.canvasElement.getContext("2d");
@@ -344,20 +366,41 @@ var FlowJS = class {
         return;
       }
       e.preventDefault();
-      const deltaY = e.deltaY;
-      if (deltaY > 0) {
-        this.currentZoom -= this.transformLevel;
-      } else {
-        this.currentZoom += this.transformLevel;
-      }
-      if (this.currentZoom < this.minZoom) {
-        this.currentZoom = this.minZoom;
-      }
-      const translateX = this.initialWidth * (1 - this.currentZoom) / 2;
-      const translateY = this.initialHeight * (1 - this.currentZoom) / 2;
-      this.containerElement.style.transform = `scale(${this.currentZoom}) translate(${translateX}px, ${translateY}px)`;
-      this.watchMinMaxScroll();
+      requestAnimationFrame(() => {
+        const deltaY = e.deltaY;
+        if (deltaY > 0) {
+          this.currentZoom -= this.transformLevel;
+        } else {
+          this.currentZoom += this.transformLevel;
+        }
+        if (this.currentZoom < this.minZoom) {
+          this.currentZoom = this.minZoom;
+        }
+        const translateX = this.initialWidth * (1 - this.currentZoom) / 2;
+        const translateY = this.initialHeight * (1 - this.currentZoom) / 2;
+        this.containerElement.style.transform = `scale(${this.currentZoom}) translate(${translateX}px, ${translateY}px)`;
+        this.watchMinMaxScroll();
+      });
     });
+  }
+  drawArrow(fromNode, toNode) {
+    const mid = { x: (fromNode.centerX + toNode.centerX) / 2, y: (fromNode.centerY + toNode.centerY) / 2 };
+    const angle = Math.atan2(toNode.centerY - fromNode.centerY, toNode.centerX - fromNode.centerX);
+    const ctx = this.canvasElement.getContext("2d");
+    const arrowLength = 10;
+    ctx.beginPath();
+    ctx.moveTo(mid.x, mid.y);
+    ctx.lineTo(
+      mid.x - arrowLength * Math.cos(angle - Math.PI / 6),
+      mid.y - arrowLength * Math.sin(angle - Math.PI / 6)
+    );
+    ctx.lineTo(
+      mid.x - arrowLength * Math.cos(angle + Math.PI / 6),
+      mid.y - arrowLength * Math.sin(angle + Math.PI / 6)
+    );
+    ctx.closePath();
+    ctx.fillStyle = this.LINE_COLOR;
+    ctx.fill();
   }
   get minZoom() {
     return Math.max(
@@ -387,6 +430,23 @@ var FlowJS = class {
         this.parentElement.scrollTop = maxScrollTopAllowed;
       }
     }
+  }
+  get flowInfo() {
+    const nodesData = [];
+    this.nodes.forEach((node) => {
+      if (node) {
+        const { connections, metaData, nodeName, nodeId, centerX, centerY } = node;
+        const centerPercentage = {
+          x: centerX / this.containerElement.offsetWidth,
+          y: centerY / this.containerElement.offsetHeight
+        };
+        nodesData.push({ connections, metaData, nodeName, nodeId, centerPercentage });
+      }
+    });
+    return {
+      nodes: nodesData,
+      nextNodeId: this.nextNodeId
+    };
   }
 };
 window["FlowJS"] = FlowJS;

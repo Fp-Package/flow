@@ -1,21 +1,23 @@
+import { FlowData, FlowNodeData } from "./flow.interface.js";
 import { FlowNode } from "./node.js";
 
 export default class FlowJS {
     containerElement: HTMLElement;
     parentElement: HTMLElement;
-    nodeId: number = 0;
+    nextNodeId: number = 0;
     nodes: FlowNode[] = [];
     private modalElement: HTMLElement;
     private canvasElement: HTMLCanvasElement;
     private currentZoom = 1;
-    private elementScale = 15;
-    private transformLevel = 0.0015;
+    private elementScale = 10;
+    private transformLevel = 0.0025;
     private initialWidth: number;
     private initialHeight: number;
     private isOneNodeMoving = false;
-    private lineWidth = 1.5;
+    private lineWidth = 1;
     private mouseMoveTimer: any;
     private readonly MOUSE_MOVE_DELAY = 3000;
+    private readonly LINE_COLOR = '#f95c57';
     private readonly SCROLLBAR_WIDTH = 6;
 
     constructor(private el: HTMLElement) {
@@ -127,7 +129,7 @@ export default class FlowJS {
         const modalContent = document.createElement('div');
         modalContent.classList.add('flow-modal');
         modal.appendChild(modalContent);
-        this.containerElement.appendChild(modal);
+        this.parentElement.appendChild(modal);
         this.modalElement = modal;
         modal.addEventListener('click', (e) => {
             modal.classList.remove('show');
@@ -143,9 +145,9 @@ export default class FlowJS {
      */
     addNode = (el?: HTMLElement, name?: string): void => {
         console.log('addNode');
-        const node = new FlowNode(this.nodeId, el, name);
+        const node = new FlowNode(this.nextNodeId, el, name);
         this.nodes.push(node);
-        this.nodeId++;
+        this.nextNodeId++;
         this.containerElement.appendChild(node.nodeElement);
         node.onRemove = this.removeNode;
         node.onConnection = this.connectNodes;
@@ -181,6 +183,12 @@ export default class FlowJS {
     }
 
     /**
+     * Set the flow with saved data
+     * @param flowInfo The saved flow data
+     */
+    setSavedFlow(flowInfo: FlowData) { }
+
+    /**
      * Connect two nodes
      * @param fromNode The id of the node to connect from
      */
@@ -214,7 +222,7 @@ export default class FlowJS {
         this.modalElement.classList.add('show');
     }
 
-    drawConnection(fromNode: FlowNode, toNode: FlowNode) {
+    private drawConnection(fromNode: FlowNode, toNode: FlowNode) {
         const existingConnection = fromNode.connections.find(c => c.nodeId === toNode.nodeId && c.type === 'out');
 
         if (existingConnection) {
@@ -245,9 +253,11 @@ export default class FlowJS {
         this.ctx.beginPath();
         this.ctx.moveTo(fromNode.centerX, fromNode.centerY);
         this.ctx.lineTo(toNode.centerX, toNode.centerY);
-        this.ctx.strokeStyle = '#eeeeee';
+        this.ctx.strokeStyle = this.LINE_COLOR;
         this.ctx.lineWidth = this.lineWidth / this.currentZoom;
         this.ctx.stroke();
+
+        this.drawArrow(fromNode, toNode);
     }
 
     private get ctx() {
@@ -260,20 +270,43 @@ export default class FlowJS {
                 return; // Triggered by two finger scroll
             }
             e.preventDefault();
-            const deltaY = e.deltaY;
-            if (deltaY > 0) {
-                this.currentZoom -= this.transformLevel;
-            } else {
-                this.currentZoom += this.transformLevel;
-            }
-            if (this.currentZoom < this.minZoom) {
-                this.currentZoom = this.minZoom;
-            }
-            const translateX = this.initialWidth * (1 - this.currentZoom) / 2;
-            const translateY = this.initialHeight * (1 - this.currentZoom) / 2;
-            this.containerElement.style.transform = `scale(${this.currentZoom}) translate(${translateX}px, ${translateY}px)`;
-            this.watchMinMaxScroll();
+            requestAnimationFrame(() => {
+                const deltaY = e.deltaY;
+                if (deltaY > 0) {
+                    this.currentZoom -= this.transformLevel;
+                } else {
+                    this.currentZoom += this.transformLevel;
+                }
+                if (this.currentZoom < this.minZoom) {
+                    this.currentZoom = this.minZoom;
+                }
+                const translateX = this.initialWidth * (1 - this.currentZoom) / 2;
+                const translateY = this.initialHeight * (1 - this.currentZoom) / 2;
+                this.containerElement.style.transform = `scale(${this.currentZoom}) translate(${translateX}px, ${translateY}px)`;
+                this.watchMinMaxScroll();
+            });
         });
+    }
+
+    private drawArrow(fromNode: FlowNode, toNode: FlowNode) {
+        const mid = { x: (fromNode.centerX + toNode.centerX) / 2, y: (fromNode.centerY + toNode.centerY) / 2 };
+        const angle = Math.atan2(toNode.centerY - fromNode.centerY, toNode.centerX - fromNode.centerX);
+        const ctx = this.canvasElement.getContext('2d');
+
+        const arrowLength = 10;
+        ctx.beginPath();
+        ctx.moveTo(mid.x, mid.y);
+        ctx.lineTo(
+            mid.x - arrowLength * Math.cos(angle - Math.PI / 6),
+            mid.y - arrowLength * Math.sin(angle - Math.PI / 6)
+        );
+        ctx.lineTo(
+            mid.x - arrowLength * Math.cos(angle + Math.PI / 6),
+            mid.y - arrowLength * Math.sin(angle + Math.PI / 6)
+        );
+        ctx.closePath();
+        ctx.fillStyle = this.LINE_COLOR;
+        ctx.fill();
     }
 
     private get minZoom() {
@@ -305,6 +338,25 @@ export default class FlowJS {
                 this.parentElement.scrollTop = maxScrollTopAllowed;
             }
         }
+    }
+
+    get flowInfo(): FlowData {
+        const nodesData: FlowNodeData[]  = [];
+        this.nodes.forEach(node => {
+            if (node) {
+                const { connections, metaData, nodeName, nodeId, centerX, centerY } = node;
+                const centerPercentage = {
+                    x: centerX / this.containerElement.offsetWidth,
+                    y: centerY / this.containerElement.offsetHeight
+                }
+                nodesData.push({ connections, metaData, nodeName, nodeId, centerPercentage });
+            }
+        });
+
+        return {
+            nodes: nodesData,
+            nextNodeId: this.nextNodeId
+        };
     }
 }
 

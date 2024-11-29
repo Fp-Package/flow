@@ -1,7 +1,7 @@
 .fp-flowjs-container {
   position: relative;
   background: #191919;
-  transform-origin: left top;
+  transform-origin: center;
   transition: transform 0.1s;
 }
 
@@ -46,7 +46,7 @@
   background: #479ec3;
   min-width: 180px;
   z-index: 499;
-  box-shadow: 0 0 8px 8px #33333388;
+  box-shadow: 0 0 6px 6px #22222288;
 }
 
 .fp-flowjs-canvas {

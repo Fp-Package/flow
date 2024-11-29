@@ -12,6 +12,8 @@ export class FlowNode {
     zoomPosition: Function;
     containerElement: HTMLElement;
     onNodeMove: Function;
+    metaData: any = {};
+    parentElement
 
     constructor(private id: number, private el?: HTMLElement, private name?: string) {
         this.nodeId = id;
@@ -62,31 +64,45 @@ export class FlowNode {
         this.watchMove();
     }
 
-    watchMove() {
+    private watchMove() {
         let isDragging = false;
-        let offsetX = 0;
-        let offsetY = 0;
+        let clientX = 0;
+        let clientY = 0;
+        let left = 0;
+        let top = 0;
 
         this.nodeElement.addEventListener('mousedown', (e) => {
             e.stopPropagation();
             this.onNodeMove(true);
+            this.nodeElement.style.userSelect = 'none';
             isDragging = true;
-            offsetX = e.offsetX * this.zoomPosition();
-            offsetY = e.offsetY * this.zoomPosition();
+            clientX = e.clientX;
+            clientY = e.clientY;
+            left = this.nodeElement.offsetLeft;
+            top = this.nodeElement.offsetTop;
         });
 
         window.addEventListener('mousemove', (e) => {
             if (isDragging) {
-                const { x, y } = this.parentScrollPosition();
-                this.nodeElement.style.left = (x + e.clientX - offsetX) * this.zoomPosition() + 'px';
-                this.nodeElement.style.top = (y + e.clientY - offsetY) * this.zoomPosition() + 'px';
-                this.drawConnections();
+                let animationFrameId = null;
+                if (!animationFrameId) {
+                    animationFrameId = requestAnimationFrame(() => {
+                        this.nodeElement.style.left = left + e.clientX - clientX + 'px';
+                        this.nodeElement.style.top = top + e.clientY - clientY + 'px';
+                        this.drawConnections();
+        
+                        animationFrameId = null;
+                    });
+                }
             }
         });
 
         window.addEventListener('mouseup', (e) => {
-            isDragging = false;
-            this.onNodeMove(false);
+            if (isDragging) {
+                isDragging = false;
+                this.onNodeMove(false);
+                this.nodeElement.style.userSelect = 'auto';
+            }
         });
     }
 
