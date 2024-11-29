@@ -3,14 +3,13 @@ import { FlowNode } from "./node.js";
 
 export default class FlowJS {
     containerElement: HTMLElement;
-    parentElement: HTMLElement;
     nextNodeId: number = 0;
     nodes: FlowNode[] = [];
     private modalElement: HTMLElement;
     private canvasElement: HTMLCanvasElement;
     private currentZoom = 1;
     private elementScale = 10;
-    private transformLevel = 0.0025;
+    private transformLevel = 0.01;
     private initialWidth: number;
     private initialHeight: number;
     private isOneNodeMoving = false;
@@ -18,22 +17,24 @@ export default class FlowJS {
     private mouseMoveTimer: any;
     private readonly MOUSE_MOVE_DELAY = 3000;
     private readonly LINE_COLOR = '#f95c57';
-    private readonly SCROLLBAR_WIDTH = 6;
 
-    constructor(private el: HTMLElement) {
+    constructor(private parentElement: HTMLElement, private savedFlowData?: FlowData) {
         console.log('flow', this);
         window['flow'] = this;
-        if (!this.el) {
+        if (!this.parentElement) {
             throw new Error('Container element is required to be initiated with FlowJS class.');
         };
-        this.parentElement = this.el;
+        this.parentElement = this.parentElement;
         this.applyParentStyles();
-        this.createContainer(this.el);
+        this.createContainer(this.parentElement);
         this.setScrollPosition();
         this.createCanvasElement();
         this.handleZoom();
         this.handleScroll();
         this.createModal();
+        if (savedFlowData) {
+            this.setSavedFlow();
+        }
     }
 
     private createContainer(el: HTMLElement) {
@@ -143,11 +144,16 @@ export default class FlowJS {
      * @param el HTMLElement to show inside the node
      * @param name Name of the node
      */
-    addNode = (el?: HTMLElement, name?: string): void => {
+    addNode(el?: HTMLElement, name?: string): FlowNode {
         console.log('addNode');
-        const node = new FlowNode(this.nextNodeId, el, name);
-        this.nodes.push(node);
+        const node = this.setNewNode(this.nextNodeId, el, name);
         this.nextNodeId++;
+        return node;
+    }
+
+    private setNewNode(nodeId: number, el?: HTMLElement, name?: string): FlowNode {
+        const node = new FlowNode(nodeId, el, name);
+        this.nodes.push(node);
         this.containerElement.appendChild(node.nodeElement);
         node.onRemove = this.removeNode;
         node.onConnection = this.connectNodes;
@@ -166,6 +172,7 @@ export default class FlowJS {
         node.onNodeMove = (bool: boolean) => {
             this.isOneNodeMoving = bool;
         };
+        return node;
     }
 
     /**
@@ -186,7 +193,20 @@ export default class FlowJS {
      * Set the flow with saved data
      * @param flowInfo The saved flow data
      */
-    setSavedFlow(flowInfo: FlowData) { }
+    private setSavedFlow() {
+        this.savedFlowData.nodes = this.savedFlowData.nodes.sort((a, b) => a.nodeId - b.nodeId);
+        this.savedFlowData.nodes.forEach(nodeData => {
+            if (nodeData) {
+                const node = this.setNewNode(nodeData.nodeId, null, nodeData.nodeName);
+                node.metaData = nodeData.metaData;
+                node.connections = nodeData.connections;
+                node.nodeElement.style.left = (nodeData.centerPercentage.x * this.containerElement.offsetWidth) + 'px';
+                node.nodeElement.style.top = (nodeData.centerPercentage.y * this.containerElement.offsetHeight) + 'px';
+            }
+        });
+        this.nextNodeId = this.savedFlowData.nextNodeId;
+        this.drawConnections();
+    }
 
     /**
      * Connect two nodes
@@ -341,7 +361,7 @@ export default class FlowJS {
     }
 
     get flowInfo(): FlowData {
-        const nodesData: FlowNodeData[]  = [];
+        const nodesData: FlowNodeData[] = [];
         this.nodes.forEach(node => {
             if (node) {
                 const { connections, metaData, nodeName, nodeId, centerX, centerY } = node;
@@ -357,6 +377,11 @@ export default class FlowJS {
             nodes: nodesData,
             nextNodeId: this.nextNodeId
         };
+    }
+
+    setDefaultZoom() {
+        this.currentZoom = 1;
+        this.containerElement.style.transform = `scale(${this.currentZoom})`;
     }
 }
 

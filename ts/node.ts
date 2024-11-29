@@ -13,15 +13,14 @@ export class FlowNode {
     containerElement: HTMLElement;
     onNodeMove: Function;
     metaData: any = {};
-    parentElement
 
-    constructor(private id: number, private el?: HTMLElement, private name?: string) {
-        this.nodeId = id;
-        this.nodeName = name || ('Node ' + this.nodeId);
-        this.createNode(this.el, name);
+    constructor(private id: number, private innerElement?: HTMLElement, private name?: string) {
+        this.nodeId = this.id;
+        this.nodeName = this.name || ('Node ' + this.nodeId);
+        this.createNode();
     }
 
-    private createNode(el: HTMLElement, name?: string): void {
+    private createNode(): void {
         const node = document.createElement('div');
         node.classList.add('fp-flowjs-node', 'fp-flowjs-node-' + this.nodeId);
         const title = document.createElement('div');
@@ -55,8 +54,8 @@ export class FlowNode {
         // Create body element
         const body = document.createElement('div');
         body.classList.add('fp-flowjs-node-body');
-        if (el) {
-            body.appendChild(el);
+        if (this.innerElement) {
+            body.appendChild(this.innerElement);
         }
         node.appendChild(body);
         this.nodeElement = node;
@@ -112,5 +111,10 @@ export class FlowNode {
 
     get centerY() {
         return this.nodeElement.offsetTop + (this.nodeElement.offsetHeight / 2);
+    }
+
+    set element(element: HTMLElement) {
+        this.innerElement = element;
+        this.nodeElement.querySelector('.fp-flowjs-node-body').appendChild(element);
     }
 }

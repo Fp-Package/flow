@@ -40,18 +40,18 @@ var ConnectionIcon = (iconParams = defaultIconParams) => {
 
 // ts/node.ts
 var FlowNode = class {
-  constructor(id, el, name) {
+  constructor(id, innerElement, name) {
     this.id = id;
-    this.el = el;
+    this.innerElement = innerElement;
     this.name = name;
     this.nodeId = 0;
     this.connections = [];
     this.metaData = {};
-    this.nodeId = id;
-    this.nodeName = name || "Node " + this.nodeId;
-    this.createNode(this.el, name);
+    this.nodeId = this.id;
+    this.nodeName = this.name || "Node " + this.nodeId;
+    this.createNode();
   }
-  createNode(el, name) {
+  createNode() {
     const node = document.createElement("div");
     node.classList.add("fp-flowjs-node", "fp-flowjs-node-" + this.nodeId);
     const title = document.createElement("div");
@@ -78,8 +78,8 @@ var FlowNode = class {
     node.appendChild(header);
     const body = document.createElement("div");
     body.classList.add("fp-flowjs-node-body");
-    if (el) {
-      body.appendChild(el);
+    if (this.innerElement) {
+      body.appendChild(this.innerElement);
     }
     node.appendChild(body);
     this.nodeElement = node;
@@ -128,50 +128,26 @@ var FlowNode = class {
   get centerY() {
     return this.nodeElement.offsetTop + this.nodeElement.offsetHeight / 2;
   }
+  set element(element) {
+    this.innerElement = element;
+    this.nodeElement.querySelector(".fp-flowjs-node-body").appendChild(element);
+  }
 };
 
 // ts/index.ts
 var FlowJS = class {
-  constructor(el) {
-    this.el = el;
+  constructor(parentElement, savedFlowData) {
+    this.parentElement = parentElement;
+    this.savedFlowData = savedFlowData;
     this.nextNodeId = 0;
     this.nodes = [];
     this.currentZoom = 1;
     this.elementScale = 10;
-    this.transformLevel = 25e-4;
+    this.transformLevel = 0.01;
     this.isOneNodeMoving = false;
     this.lineWidth = 1;
     this.MOUSE_MOVE_DELAY = 3e3;
     this.LINE_COLOR = "#f95c57";
-    this.SCROLLBAR_WIDTH = 6;
-    /**
-     * Add a node to the flow
-     * @param el HTMLElement to show inside the node
-     * @param name Name of the node
-     */
-    this.addNode = (el, name) => {
-      console.log("addNode");
-      const node = new FlowNode(this.nextNodeId, el, name);
-      this.nodes.push(node);
-      this.nextNodeId++;
-      this.containerElement.appendChild(node.nodeElement);
-      node.onRemove = this.removeNode;
-      node.onConnection = this.connectNodes;
-      node.drawConnections = this.drawConnections;
-      const boundingClientRect = this.containerElement.getBoundingClientRect();
-      const { left, top } = boundingClientRect;
-      node.nodeElement.style.left = left * -1 / this.currentZoom + "px";
-      node.nodeElement.style.top = top * -1 / this.currentZoom + "px";
-      node.parentScrollPosition = () => {
-        return { x: this.parentElement.scrollLeft, y: this.parentElement.scrollTop };
-      };
-      node.zoomPosition = () => {
-        return this.currentZoom;
-      };
-      node.onNodeMove = (bool) => {
-        this.isOneNodeMoving = bool;
-      };
-    };
     /**
      * Remove a node from the flow
      * @param nodeId The id of the node to remove
@@ -232,18 +208,21 @@ var FlowJS = class {
     };
     console.log("flow", this);
     window["flow"] = this;
-    if (!this.el) {
+    if (!this.parentElement) {
       throw new Error("Container element is required to be initiated with FlowJS class.");
     }
     ;
-    this.parentElement = this.el;
+    this.parentElement = this.parentElement;
     this.applyParentStyles();
-    this.createContainer(this.el);
+    this.createContainer(this.parentElement);
     this.setScrollPosition();
     this.createCanvasElement();
     this.handleZoom();
     this.handleScroll();
     this.createModal();
+    if (savedFlowData) {
+      this.setSavedFlow();
+    }
   }
   createContainer(el) {
     this.containerElement = document.createElement("div");
@@ -334,10 +313,55 @@ var FlowJS = class {
     modalContent.addEventListener("click", (e) => e.stopPropagation());
   }
   /**
+   * Add a node to the flow
+   * @param el HTMLElement to show inside the node
+   * @param name Name of the node
+   */
+  addNode(el, name) {
+    console.log("addNode");
+    const node = this.setNewNode(this.nextNodeId, el, name);
+    this.nextNodeId++;
+    return node;
+  }
+  setNewNode(nodeId, el, name) {
+    const node = new FlowNode(nodeId, el, name);
+    this.nodes.push(node);
+    this.containerElement.appendChild(node.nodeElement);
+    node.onRemove = this.removeNode;
+    node.onConnection = this.connectNodes;
+    node.drawConnections = this.drawConnections;
+    const boundingClientRect = this.containerElement.getBoundingClientRect();
+    const { left, top } = boundingClientRect;
+    node.nodeElement.style.left = left * -1 / this.currentZoom + "px";
+    node.nodeElement.style.top = top * -1 / this.currentZoom + "px";
+    node.parentScrollPosition = () => {
+      return { x: this.parentElement.scrollLeft, y: this.parentElement.scrollTop };
+    };
+    node.zoomPosition = () => {
+      return this.currentZoom;
+    };
+    node.onNodeMove = (bool) => {
+      this.isOneNodeMoving = bool;
+    };
+    return node;
+  }
+  /**
    * Set the flow with saved data
    * @param flowInfo The saved flow data
    */
-  setSavedFlow(flowInfo) {
+  setSavedFlow() {
+    this.savedFlowData.nodes = this.savedFlowData.nodes.sort((a, b) => a.nodeId - b.nodeId);
+    this.savedFlowData.nodes.forEach((nodeData) => {
+      if (nodeData) {
+        const node = this.setNewNode(nodeData.nodeId, null, nodeData.nodeName);
+        node.metaData = nodeData.metaData;
+        node.connections = nodeData.connections;
+        node.nodeElement.style.left = nodeData.centerPercentage.x * this.containerElement.offsetWidth + "px";
+        node.nodeElement.style.top = nodeData.centerPercentage.y * this.containerElement.offsetHeight + "px";
+      }
+    });
+    this.nextNodeId = this.savedFlowData.nextNodeId;
+    this.drawConnections();
   }
   drawConnection(fromNode, toNode) {
     const existingConnection = fromNode.connections.find((c) => c.nodeId === toNode.nodeId && c.type === "out");
@@ -447,6 +471,10 @@ var FlowJS = class {
       nodes: nodesData,
       nextNodeId: this.nextNodeId
     };
+  }
+  setDefaultZoom() {
+    this.currentZoom = 1;
+    this.containerElement.style.transform = `scale(${this.currentZoom})`;
   }
 };
 window["FlowJS"] = FlowJS;
