@@ -139,8 +139,8 @@ var FlowJS = class {
   constructor(parentElement, savedFlowData) {
     this.parentElement = parentElement;
     this.savedFlowData = savedFlowData;
-    this.nextNodeId = 0;
     this.nodes = [];
+    this.nextNodeId = 0;
     this.currentZoom = 1;
     this.elementScale = 10;
     this.transformLevel = 0.01;
@@ -475,6 +475,18 @@ var FlowJS = class {
   setDefaultZoom() {
     this.currentZoom = 1;
     this.containerElement.style.transform = `scale(${this.currentZoom})`;
+  }
+  setToCenter() {
+    this.parentElement.scrollTo({
+      top: this.parentElement.scrollHeight / 2 - this.parentElement.offsetHeight / 2,
+      left: this.parentElement.scrollWidth / 2 - this.parentElement.offsetWidth / 2
+    });
+  }
+  clearFlow() {
+    this.nodes = [];
+    this.containerElement.innerHTML = "";
+    this.nextNodeId = 0;
+    this.createCanvasElement();
   }
 };
 window["FlowJS"] = FlowJS;

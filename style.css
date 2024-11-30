@@ -1,7 +1,7 @@
 .fp-flowjs-container {
   position: relative;
   background: #191919;
-  transform-origin: center;
+  transform-origin: top left;
   transition: transform 0.1s;
 }
 

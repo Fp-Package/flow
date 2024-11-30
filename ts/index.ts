@@ -3,8 +3,8 @@ import { FlowNode } from "./node.js";
 
 export default class FlowJS {
     containerElement: HTMLElement;
-    nextNodeId: number = 0;
     nodes: FlowNode[] = [];
+    private nextNodeId: number = 0;
     private modalElement: HTMLElement;
     private canvasElement: HTMLCanvasElement;
     private currentZoom = 1;
@@ -382,6 +382,20 @@ export default class FlowJS {
     setDefaultZoom() {
         this.currentZoom = 1;
         this.containerElement.style.transform = `scale(${this.currentZoom})`;
+    }
+
+    setToCenter() {
+        this.parentElement.scrollTo({
+            top: this.parentElement.scrollHeight / 2 - this.parentElement.offsetHeight / 2,
+            left: this.parentElement.scrollWidth / 2 - this.parentElement.offsetWidth / 2
+        });
+    }
+
+    clearFlow() {
+        this.nodes = [];
+        this.containerElement.innerHTML = '';
+        this.nextNodeId = 0;
+        this.createCanvasElement();
     }
 }
 
