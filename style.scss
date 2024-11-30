@@ -1,36 +1,44 @@
+$bgColor: #191919;
+
 .fp-flowjs-container {
   position: relative;
-  background: #191919;
+  background: $bgColor;
   transform-origin: top left;
   transition: transform 0.1s;
 }
 
 .fp-flow-container {
   scrollbar-width: 0px;
-}
-.fp-flow-container.add-scrolls {
-  scrollbar-width: 8px;
-}
-.fp-flow-container.add-scrolls::-webkit-scrollbar {
-  display: initial;
-}
-.fp-flow-container::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-  display: none;
-}
-.fp-flow-container::-webkit-scrollbar-corner {
-  background-color: #191919;
-}
-.fp-flow-container::-webkit-scrollbar-track {
-  background: #191919;
-}
-.fp-flow-container::-webkit-scrollbar-thumb {
-  background: #888;
-  border-radius: 3px;
-}
-.fp-flow-container::-webkit-scrollbar-thumb:hover {
-  background: #555;
+
+  &.add-scrolls {
+    scrollbar-width: 8px;
+    &::-webkit-scrollbar {
+      display: initial;
+    }
+  }
+
+  &::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+    display: none;
+  }
+
+  &::-webkit-scrollbar-corner {
+    background-color: $bgColor;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: $bgColor;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 3px;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: #555;
+  }
 }
 
 .fp-flowjs-node {
@@ -40,7 +48,7 @@
   background: #479ec3;
   min-width: 180px;
   z-index: 499;
-  box-shadow: 0 0 6px 6px rgba(34, 34, 34, 0.5333333333);
+  box-shadow: 0 0 6px 6px #22222288;
   max-width: 300px;
 }
 
@@ -141,5 +149,3 @@
 .fpf-overflow-scroll {
   overflow: auto;
 }
-
-/*# sourceMappingURL=style.css.map */
