@@ -360,7 +360,7 @@ var FlowJS = class {
         node.nodeElement.style.top = nodeData.centerPercentage.y * this.containerElement.offsetHeight + "px";
       }
     });
-    this.nextNodeId = this.savedFlowData.nextNodeId;
+    this.nextNodeId = this.savedFlowData.nextNodeId || 0;
     this.drawConnections();
   }
   drawConnection(fromNode, toNode) {
@@ -405,6 +405,7 @@ var FlowJS = class {
         this.containerElement.style.transform = `scale(${this.currentZoom}) translate(${translateX}px, ${translateY}px)`;
         this.watchMinMaxScroll();
       });
+      this.drawConnections();
     });
   }
   drawArrow(fromNode, toNode) {

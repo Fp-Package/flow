@@ -204,7 +204,7 @@ export default class FlowJS {
                 node.nodeElement.style.top = (nodeData.centerPercentage.y * this.containerElement.offsetHeight) + 'px';
             }
         });
-        this.nextNodeId = this.savedFlowData.nextNodeId;
+        this.nextNodeId = this.savedFlowData.nextNodeId || 0;
         this.drawConnections();
     }
 
@@ -305,6 +305,7 @@ export default class FlowJS {
                 this.containerElement.style.transform = `scale(${this.currentZoom}) translate(${translateX}px, ${translateY}px)`;
                 this.watchMinMaxScroll();
             });
+            this.drawConnections();
         });
     }
 

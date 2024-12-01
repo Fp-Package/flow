@@ -79,8 +79,8 @@ $bgColor: #191919;
   cursor: move !important;
 }
 
-.fp-flowjs-node-body {
-  padding: 0 16px 16px 16px;
+.fp-flowjs-node-body:first-child {
+  margin: 0 16px 16px 16px;
 }
 
 .fp-flowjs-node-controllers {
