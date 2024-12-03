@@ -1,6 +1,6 @@
 {
-  "name": "flowjs",
-  "version": "1.0.0",
+  "name": "fp-flowjs",
+  "version": "1.0.1",
   "description": "",
   "main": "index.js",
   "scripts": {

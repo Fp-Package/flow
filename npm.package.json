@@ -1,0 +1,16 @@
+{
+  "name": "fp-flowjs",
+  "version": "1.0.1",
+  "description": "Vanilla js library for flow",
+  "main": "index.js",
+  "keywords": [
+    "flowjs",
+    "flow",
+    "typescript",
+    "react-flow",
+    "angular-flow",
+    "js-flow"
+  ],
+  "author": "First Penny",
+  "license": "ISC"
+}
